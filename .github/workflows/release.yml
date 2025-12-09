@@ -54,7 +54,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: Tetris Ultimate Edition ${{ steps.get_version.outputs.VERSION }}
-        tag_name: ${{ github.ref_type == 'tag' && github.ref || format('refs/tags/{0}', steps.get_version.outputs.VERSION) }}
+        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || steps.get_version.outputs.VERSION }}
         body: |
           ## 🎮 Tetris Ultimate Edition v${{ steps.get_version.outputs.VERSION }}
           
