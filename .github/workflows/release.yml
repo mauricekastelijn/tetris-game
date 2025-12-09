@@ -32,7 +32,7 @@ jobs:
     - name: Extract version from tag
       id: get_version
       run: |
-        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
           echo "IS_DRAFT=false" >> $GITHUB_OUTPUT
         else
