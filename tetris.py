@@ -565,7 +565,7 @@ class TetrisGame:
         self.small_font = pygame.font.Font(None, 24)
 
         # Game state
-        self.grid = [
+        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [
             [None for _ in range(self.config.GRID_WIDTH)] for _ in range(self.config.GRID_HEIGHT)
         ]
         self.current_piece: Optional[Tetromino] = None
@@ -959,7 +959,7 @@ class TetrisGame:
             for x in range(self.config.GRID_WIDTH):
                 color = self.grid[y][x]
                 if color is not None:
-                    self.draw_block(x, y, color)  # type: ignore[unreachable]
+                    self.draw_block(x, y, color)
 
         # Draw clearing animation
         if self.clearing_lines:
