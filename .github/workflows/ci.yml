@@ -79,15 +79,12 @@ jobs:
     
     - name: Check code formatting with black
       run: black --check tetris.py tests/
-      continue-on-error: true
     
     - name: Lint with flake8
       run: flake8 tetris.py tests/ --max-line-length=100 --ignore=E203,W503
-      continue-on-error: true
     
     - name: Lint with pylint
       run: pylint tetris.py --disable=C0103,C0114,C0115,C0116
-      continue-on-error: true
 
   build:
     name: Build Distribution
@@ -144,8 +141,6 @@ jobs:
     
     - name: Run safety check
       run: safety check --json
-      continue-on-error: true
     
     - name: Run bandit security scan
       run: bandit -r tetris.py -f json
-      continue-on-error: true
