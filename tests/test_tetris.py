@@ -7,19 +7,10 @@ from typing import Generator
 import pygame
 import pytest
 
-from tetris import (
-    COLORS,
-    GRID_HEIGHT,
-    GRID_WIDTH,
-    SHAPES,
-    GameConfig,
-    GameOverState,
-    LineClearingState,
-    PausedState,
-    PlayingState,
-    TetrisGame,
-    Tetromino,
-)
+from config import GameConfig
+from game_states import GameOverState, LineClearingState, PausedState, PlayingState
+from tetris import COLORS, GRID_HEIGHT, GRID_WIDTH, SHAPES, TetrisGame
+from tetromino import Tetromino
 
 
 class TestTetromino:

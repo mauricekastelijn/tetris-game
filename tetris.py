@@ -8,97 +8,12 @@ from typing import List, Optional, Tuple
 
 import pygame
 
+from config import GameConfig
+from game_states import GameOverState, GameState, LineClearingState, PlayingState
+from tetromino import Tetromino
+
 # Initialize Pygame
 pygame.init()
-
-
-class GameConfig:  # pylint: disable=too-few-public-methods
-    """Centralized game configuration.
-
-    This class contains all game constants including display settings,
-    grid dimensions, timing parameters, scoring values, colors, and
-    tetromino shape definitions.
-
-    Attributes:
-        SCREEN_WIDTH: Width of the game window in pixels (800)
-        SCREEN_HEIGHT: Height of the game window in pixels (700)
-        BLOCK_SIZE: Size of each tetromino block in pixels (30)
-        GRID_X: X position of the game grid on screen in pixels (250)
-        GRID_Y: Y position of the game grid on screen in pixels (50)
-        GRID_WIDTH: Number of columns in the game grid (10)
-        GRID_HEIGHT: Number of rows in the game grid (20)
-        INITIAL_FALL_SPEED: Starting piece fall speed in milliseconds (1000)
-        CLEAR_ANIMATION_DURATION: Duration of line clear animation in ms (500)
-        LEVEL_SPEED_DECREASE: Speed increase per level in milliseconds (100)
-        MIN_FALL_SPEED: Minimum fall speed cap in milliseconds (100)
-        LINE_SCORES: Points awarded for clearing 1-4 lines
-        SOFT_DROP_BONUS: Points per row for soft drop (1)
-        HARD_DROP_BONUS: Points per row for hard drop (2)
-        LINES_PER_LEVEL: Number of lines to clear for level up (10)
-        BLACK, WHITE, GRAY, DARK_GRAY: Basic UI colors
-        CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, ORANGE: Tetromino colors
-        SHAPES: Dictionary mapping shape types to their grid patterns
-        COLORS: Dictionary mapping shape types to RGB color tuples
-    """
-
-    # Display settings
-    SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 700
-    BLOCK_SIZE = 30
-    GRID_X = 250
-    GRID_Y = 50
-
-    # Grid settings
-    GRID_WIDTH = 10
-    GRID_HEIGHT = 20
-
-    # Timing settings
-    INITIAL_FALL_SPEED = 1000  # milliseconds
-    CLEAR_ANIMATION_DURATION = 500  # milliseconds
-    LEVEL_SPEED_DECREASE = 100  # milliseconds
-    MIN_FALL_SPEED = 100  # milliseconds
-
-    # Scoring
-    LINE_SCORES = {1: 100, 2: 300, 3: 500, 4: 800}
-    SOFT_DROP_BONUS = 1
-    HARD_DROP_BONUS = 2
-    LINES_PER_LEVEL = 10
-
-    # Colors
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    GRAY = (128, 128, 128)
-    DARK_GRAY = (40, 40, 40)
-    CYAN = (0, 255, 255)
-    YELLOW = (255, 255, 0)
-    PURPLE = (128, 0, 128)
-    GREEN = (0, 255, 0)
-    RED = (255, 0, 0)
-    BLUE = (0, 0, 255)
-    ORANGE = (255, 165, 0)
-
-    # Tetromino shapes
-    SHAPES = {
-        "I": [[1, 1, 1, 1]],
-        "O": [[1, 1], [1, 1]],
-        "T": [[0, 1, 0], [1, 1, 1]],
-        "S": [[0, 1, 1], [1, 1, 0]],
-        "Z": [[1, 1, 0], [0, 1, 1]],
-        "J": [[1, 0, 0], [1, 1, 1]],
-        "L": [[0, 0, 1], [1, 1, 1]],
-    }
-
-    # Tetromino colors (defined inline to avoid forward reference issues)
-    COLORS = {
-        "I": (0, 255, 255),  # CYAN
-        "O": (255, 255, 0),  # YELLOW
-        "T": (128, 0, 128),  # PURPLE
-        "S": (0, 255, 0),  # GREEN
-        "Z": (255, 0, 0),  # RED
-        "J": (0, 0, 255),  # BLUE
-        "L": (255, 165, 0),  # ORANGE
-    }
-
 
 # Module-level constants for backward compatibility
 SCREEN_WIDTH = GameConfig.SCREEN_WIDTH
@@ -123,387 +38,6 @@ ORANGE = GameConfig.ORANGE
 
 SHAPES = GameConfig.SHAPES
 COLORS = GameConfig.COLORS
-
-
-class GameState:
-    """Base class for game states using the State pattern.
-
-    This abstract base class defines the interface that all concrete
-    game states must implement. Each state can handle input, update
-    game logic, and draw state-specific UI elements differently.
-    """
-
-    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
-        """Handle input events for this state.
-
-        Args:
-            event: Pygame event to process (should be KEYDOWN event)
-            game: The TetrisGame instance to manipulate
-        """
-
-    def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """Update game logic for this state.
-
-        Args:
-            delta_time: Time elapsed since last update in milliseconds
-            game: The TetrisGame instance to update
-        """
-
-    def draw(self, game: "TetrisGame") -> None:
-        """Draw additional state-specific elements.
-
-        Args:
-            game: The TetrisGame instance providing screen and rendering context
-        """
-
-
-class PlayingState(GameState):
-    """Active gameplay state.
-
-    In this state, the player can control the falling piece,
-    pieces auto-fall based on the current fall speed, and
-    all normal gameplay mechanics are active.
-    """
-
-    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
-        """Handle input during active gameplay.
-
-        Processes keyboard input for piece movement, rotation, dropping,
-        holding, ghost piece toggle, and pause.
-
-        Args:
-            event: Pygame KEYDOWN event
-            game: The TetrisGame instance to manipulate
-
-        Key bindings:
-            LEFT/RIGHT: Move piece horizontally
-            DOWN: Soft drop (move down + score bonus)
-            UP: Rotate piece clockwise
-            SPACE: Hard drop (instant drop + larger score bonus)
-            C: Hold current piece
-            G: Toggle ghost piece visibility
-            P: Pause game
-        """
-        if event.key == pygame.K_LEFT:
-            game.move_piece(-1, 0)
-        elif event.key == pygame.K_RIGHT:
-            game.move_piece(1, 0)
-        elif event.key == pygame.K_DOWN:
-            if game.move_piece(0, 1):
-                game.score += game.config.SOFT_DROP_BONUS
-        elif event.key == pygame.K_UP:
-            game.rotate_piece()
-        elif event.key == pygame.K_SPACE:
-            game.hard_drop()
-        elif event.key == pygame.K_c:
-            game.hold_current_piece()
-        elif event.key == pygame.K_g:
-            game.show_ghost = not game.show_ghost
-        elif event.key == pygame.K_p:
-            game.state = PausedState()
-
-    def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """Update active gameplay.
-
-        Handles automatic piece falling based on fall speed.
-        When a piece can't fall further, it locks into place.
-
-        Args:
-            delta_time: Time elapsed since last update in milliseconds
-            game: The TetrisGame instance to update
-        """
-        # Auto-fall
-        game.fall_time += delta_time
-        if game.fall_time >= game.fall_speed:
-            game.fall_time = 0
-            if not game.move_piece(0, 1):
-                game.lock_piece()
-
-    def draw(self, game: "TetrisGame") -> None:
-        """No additional drawing needed for playing state.
-
-        Args:
-            game: The TetrisGame instance (unused in this state)
-        """
-
-
-class PausedState(GameState):
-    """Game paused state.
-
-    In this state, game logic is frozen and a pause overlay
-    is displayed. Only unpause input is processed.
-    """
-
-    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
-        """Handle input while paused.
-
-        Only processes the pause key to resume gameplay.
-
-        Args:
-            event: Pygame KEYDOWN event
-            game: The TetrisGame instance to manipulate
-
-        Key bindings:
-            P: Unpause and return to playing state
-        """
-        if event.key == pygame.K_p:
-            game.state = PlayingState()
-
-    def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """No updates while paused.
-
-        Args:
-            delta_time: Time elapsed in milliseconds (ignored)
-            game: The TetrisGame instance (ignored)
-        """
-
-    def draw(self, game: "TetrisGame") -> None:
-        """Draw pause overlay.
-
-        Renders a semi-transparent black overlay with pause message
-        and instructions to continue.
-
-        Args:
-            game: The TetrisGame instance providing screen and rendering context
-        """
-        overlay = pygame.Surface((game.config.SCREEN_WIDTH, game.config.SCREEN_HEIGHT))
-        overlay.set_alpha(180)
-        overlay.fill(game.config.BLACK)
-        game.screen.blit(overlay, (0, 0))
-
-        pause_text = game.font.render("PAUSED", True, game.config.WHITE)
-        continue_text = game.small_font.render("Press P to Continue", True, game.config.WHITE)
-
-        game.screen.blit(
-            pause_text,
-            (game.config.SCREEN_WIDTH // 2 - pause_text.get_width() // 2, 250),
-        )
-        game.screen.blit(
-            continue_text,
-            (game.config.SCREEN_WIDTH // 2 - continue_text.get_width() // 2, 320),
-        )
-
-
-class LineClearingState(GameState):
-    """Line clearing animation state.
-
-    In this state, a line clearing animation plays before
-    the completed lines are removed. No player input is
-    processed during the animation.
-    """
-
-    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
-        """No input handling during line clearing.
-
-        Args:
-            event: Pygame event (ignored)
-            game: The TetrisGame instance (ignored)
-        """
-
-    def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """Update line clearing animation.
-
-        Tracks animation progress and transitions back to playing
-        state when animation completes.
-
-        Args:
-            delta_time: Time elapsed since last update in milliseconds
-            game: The TetrisGame instance to update
-
-        Side effects:
-            When animation completes, calls finish_clearing_animation()
-            and transitions to PlayingState
-        """
-        game.clear_animation_time += delta_time
-        if game.clear_animation_time >= game.clear_animation_duration:
-            game.finish_clearing_animation()
-            game.state = PlayingState()
-
-    def draw(self, game: "TetrisGame") -> None:
-        """No additional drawing needed - animation handled in draw_grid.
-
-        The line clearing animation (white fade effect) is rendered
-        by the main draw_grid method based on clearing_lines state.
-
-        Args:
-            game: The TetrisGame instance (unused in this state)
-        """
-
-
-class GameOverState(GameState):
-    """Game over state.
-
-    Displayed when the game ends (pieces can't spawn).
-    Shows final score and allows restarting.
-    """
-
-    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
-        """Handle input in game over state.
-
-        Processes restart key to reset and begin new game.
-
-        Args:
-            event: Pygame KEYDOWN event
-            game: The TetrisGame instance to manipulate
-
-        Key bindings:
-            R: Reset game and return to playing state
-        """
-        if event.key == pygame.K_r:
-            game.reset_game()
-            game.state = PlayingState()
-
-    def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """No updates in game over state.
-
-        Args:
-            delta_time: Time elapsed in milliseconds (ignored)
-            game: The TetrisGame instance (ignored)
-        """
-
-    def draw(self, game: "TetrisGame") -> None:
-        """Draw game over overlay.
-
-        Renders a semi-transparent overlay with game over message,
-        final score, and restart instructions.
-
-        Args:
-            game: The TetrisGame instance providing screen and rendering context
-        """
-        overlay = pygame.Surface((game.config.SCREEN_WIDTH, game.config.SCREEN_HEIGHT))
-        overlay.set_alpha(200)
-        overlay.fill(game.config.BLACK)
-        game.screen.blit(overlay, (0, 0))
-
-        game_over_text = game.font.render("GAME OVER", True, game.config.RED)
-        score_text = game.font.render(f"Final Score: {game.score}", True, game.config.WHITE)
-        restart_text = game.small_font.render("Press R to Restart", True, game.config.WHITE)
-
-        game.screen.blit(
-            game_over_text,
-            (game.config.SCREEN_WIDTH // 2 - game_over_text.get_width() // 2, 250),
-        )
-        game.screen.blit(
-            score_text,
-            (game.config.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 320),
-        )
-        game.screen.blit(
-            restart_text,
-            (game.config.SCREEN_WIDTH // 2 - restart_text.get_width() // 2, 400),
-        )
-
-
-class Tetromino:
-    """Represents a Tetris piece (tetromino).
-
-    A tetromino is a geometric shape composed of four blocks.
-    This class tracks the piece's type, shape, color, and position
-    on the game grid.
-
-    Attributes:
-        type: Shape type identifier ("I", "O", "T", "S", "Z", "J", "L")
-        shape: 2D list representing the piece's block pattern
-        color: RGB color tuple for rendering
-        x: Grid column position (grid space, not screen pixels)
-        y: Grid row position (grid space, not screen pixels)
-        config: Configuration class providing game constants
-
-    Note:
-        Position (x, y) is in grid coordinates where (0, 0) is the
-        top-left corner of the game grid. To convert to screen
-        coordinates, use GRID_X + x * BLOCK_SIZE and
-        GRID_Y + y * BLOCK_SIZE.
-    """
-
-    def __init__(self, shape_type: str, config=None) -> None:
-        """Initialize a Tetromino.
-
-        Args:
-            shape_type: Type of tetromino ("I", "O", "T", "S", "Z", "J", "L")
-            config: Configuration class (not instance) to use. Defaults to GameConfig.
-                   Using a class allows for easy subclassing and attribute access.
-
-        Raises:
-            KeyError: If shape_type is not a valid tetromino type
-        """
-        if config is None:
-            config = GameConfig
-        self.type = shape_type
-        self.shape = [row[:] for row in config.SHAPES[shape_type]]
-        self.color = config.COLORS[shape_type]
-        self.x = config.GRID_WIDTH // 2 - len(self.shape[0]) // 2
-        self.y = 0
-        self.config = config
-
-    def rotate_clockwise(self) -> None:
-        """Rotate the piece 90 degrees clockwise.
-
-        Performs matrix transposition and row reversal to achieve
-        clockwise rotation. Modifies the shape in place.
-
-        Side effects:
-            Updates self.shape with the rotated pattern
-
-        Note:
-            Does not check for collision - use TetrisGame.rotate_piece()
-            which includes wall kick logic.
-        """
-        self.shape = [list(row) for row in zip(*self.shape[::-1])]
-
-    def rotate_counterclockwise(self) -> None:
-        """Rotate the piece 90 degrees counterclockwise.
-
-        Performs matrix transposition and column reversal to achieve
-        counterclockwise rotation. Modifies the shape in place.
-
-        Side effects:
-            Updates self.shape with the rotated pattern
-
-        Note:
-            Currently unused in gameplay (only clockwise rotation is used)
-            but provided for completeness.
-        """
-        self.shape = [list(row) for row in zip(*self.shape)][::-1]
-
-    def get_blocks(self) -> List[Tuple[int, int]]:
-        """Get list of block positions for this piece.
-
-        Calculates absolute grid positions for each block in the piece
-        based on the piece's position and shape pattern.
-
-        Returns:
-            List of (x, y) tuples in grid coordinates, one per block.
-            Typically 4 blocks for standard tetrominoes.
-
-        Note:
-            Coordinates are in grid space (0 to GRID_WIDTH-1, 0 to GRID_HEIGHT-1).
-            Blocks may have negative y values when piece spawns above grid.
-        """
-        blocks = []
-        for y, row in enumerate(self.shape):
-            for x, cell in enumerate(row):
-                if cell:
-                    blocks.append((self.x + x, self.y + y))
-        return blocks
-
-    def copy(self) -> "Tetromino":
-        """Create a deep copy of this tetromino.
-
-        Useful for ghost piece calculation and hold piece swapping
-        without affecting the original piece.
-
-        Returns:
-            New Tetromino instance with same type, shape, position, and config
-
-        Note:
-            Shape is deep copied so modifications to the copy won't
-            affect the original.
-        """
-        new_piece = Tetromino(self.type, self.config)
-        new_piece.shape = [row[:] for row in self.shape]
-        new_piece.x = self.x
-        new_piece.y = self.y
-        return new_piece
 
 
 class TetrisGame:
@@ -904,23 +438,10 @@ class TetrisGame:
 
         self.can_hold = False
 
-    def draw_grid(self) -> None:
-        """Draw the game grid with background, placed blocks, and active pieces.
+    def _draw_grid_background(self) -> None:
+        """Draw grid background and grid lines.
 
-        Renders (in order):
-            1. Grid background (dark gray rectangle)
-            2. Grid lines (light gray)
-            3. Placed blocks from self.grid
-            4. Line clearing animation (if active)
-            5. Ghost piece (if enabled and not clearing)
-            6. Current piece
-
-        Side effects:
-            Draws directly to self.screen
-
-        Note:
-            All positions are converted from grid space to screen space
-            using GRID_X, GRID_Y, and BLOCK_SIZE offsets.
+        Helper method to reduce complexity of draw_grid.
         """
         # Draw background
         grid_rect = pygame.Rect(
@@ -954,51 +475,95 @@ class TetrisGame:
                 ),
             )
 
-        # Draw placed blocks
+    def _draw_placed_blocks(self) -> None:
+        """Draw blocks that have been locked into the grid.
+
+        Helper method to reduce complexity of draw_grid.
+        """
         for y in range(self.config.GRID_HEIGHT):
             for x in range(self.config.GRID_WIDTH):
                 color = self.grid[y][x]
                 if color is not None:
                     self.draw_block(x, y, color)
 
-        # Draw clearing animation
-        if self.clearing_lines:
-            progress = self.clear_animation_time / self.clear_animation_duration
-            alpha = int(255 * (1 - progress))
+    def _draw_clearing_animation(self) -> None:
+        """Draw line clearing animation effect.
 
-            for y in self.clearing_lines:
-                for x in range(self.config.GRID_WIDTH):
+        Helper method to reduce complexity of draw_grid.
+        """
+        if not self.clearing_lines:
+            return
+
+        progress = self.clear_animation_time / self.clear_animation_duration
+        alpha = int(255 * (1 - progress))
+
+        for y in self.clearing_lines:
+            for x in range(self.config.GRID_WIDTH):
+                rect = pygame.Rect(
+                    self.config.GRID_X + x * self.config.BLOCK_SIZE + 1,
+                    self.config.GRID_Y + y * self.config.BLOCK_SIZE + 1,
+                    self.config.BLOCK_SIZE - 2,
+                    self.config.BLOCK_SIZE - 2,
+                )
+                # Create a surface with alpha for fade effect
+                surf = pygame.Surface((self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2))
+                surf.set_alpha(alpha)
+                surf.fill(self.config.WHITE)
+                self.screen.blit(surf, (rect.x, rect.y))
+
+    def _draw_ghost_piece(self) -> None:
+        """Draw ghost piece showing landing position.
+
+        Helper method to reduce complexity of draw_grid.
+        """
+        if not (self.current_piece and self.show_ghost and not self.clearing_lines):
+            return
+
+        ghost = self.get_ghost_piece()
+        if ghost:
+            for x, y in ghost.get_blocks():
+                if y >= 0:
                     rect = pygame.Rect(
-                        self.config.GRID_X + x * self.config.BLOCK_SIZE + 1,
-                        self.config.GRID_Y + y * self.config.BLOCK_SIZE + 1,
-                        self.config.BLOCK_SIZE - 2,
-                        self.config.BLOCK_SIZE - 2,
+                        self.config.GRID_X + x * self.config.BLOCK_SIZE + 2,
+                        self.config.GRID_Y + y * self.config.BLOCK_SIZE + 2,
+                        self.config.BLOCK_SIZE - 4,
+                        self.config.BLOCK_SIZE - 4,
                     )
-                    # Create a surface with alpha for fade effect
-                    surf = pygame.Surface((self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2))
-                    surf.set_alpha(alpha)
-                    surf.fill(self.config.WHITE)
-                    self.screen.blit(surf, (rect.x, rect.y))
+                    pygame.draw.rect(self.screen, self.current_piece.color, rect, 2)
 
-        # Draw ghost piece
-        if self.current_piece and self.show_ghost and not self.clearing_lines:
-            ghost = self.get_ghost_piece()
-            if ghost:
-                for x, y in ghost.get_blocks():
-                    if y >= 0:
-                        rect = pygame.Rect(
-                            self.config.GRID_X + x * self.config.BLOCK_SIZE + 2,
-                            self.config.GRID_Y + y * self.config.BLOCK_SIZE + 2,
-                            self.config.BLOCK_SIZE - 4,
-                            self.config.BLOCK_SIZE - 4,
-                        )
-                        pygame.draw.rect(self.screen, self.current_piece.color, rect, 2)
+    def _draw_current_piece(self) -> None:
+        """Draw the currently falling piece.
 
-        # Draw current piece
+        Helper method to reduce complexity of draw_grid.
+        """
         if self.current_piece:
             for x, y in self.current_piece.get_blocks():
                 if y >= 0:
                     self.draw_block(x, y, self.current_piece.color)
+
+    def draw_grid(self) -> None:
+        """Draw the game grid with background, placed blocks, and active pieces.
+
+        Renders (in order):
+            1. Grid background (dark gray rectangle)
+            2. Grid lines (light gray)
+            3. Placed blocks from self.grid
+            4. Line clearing animation (if active)
+            5. Ghost piece (if enabled and not clearing)
+            6. Current piece
+
+        Side effects:
+            Draws directly to self.screen
+
+        Note:
+            All positions are converted from grid space to screen space
+            using GRID_X, GRID_Y, and BLOCK_SIZE offsets.
+        """
+        self._draw_grid_background()
+        self._draw_placed_blocks()
+        self._draw_clearing_animation()
+        self._draw_ghost_piece()
+        self._draw_current_piece()
 
     def draw_block(self, x: int, y: int, color: Tuple[int, int, int]) -> None:
         """Draw a single block with 3D highlighting effect.
