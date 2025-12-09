@@ -76,13 +76,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install pylint black flake8 mypy
         pip install -r requirements.txt
-    
+
     - name: Check code formatting with black
       run: black --check tetris.py tests/
-    
+
     - name: Lint with flake8
       run: flake8 tetris.py tests/ --max-line-length=100 --ignore=E203,W503
-    
+
     - name: Lint with pylint
       run: pylint tetris.py --disable=C0103,C0114,C0115,C0116
 
@@ -138,9 +138,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install safety bandit
         pip install -r requirements.txt
-    
+
     - name: Run safety check
       run: safety check --json
-    
+
     - name: Run bandit security scan
       run: bandit -r tetris.py -f json -ll
