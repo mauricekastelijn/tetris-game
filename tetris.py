@@ -410,9 +410,9 @@ class TetrisGame:
             for y in sorted_lines:
                 del self.grid[y]
 
-            # Insert empty rows at the top
-            for _ in range(num_lines):
-                self.grid.insert(0, [None for _ in range(self.config.GRID_WIDTH)])
+            # Insert empty rows at the top (bulk operation for efficiency)
+            new_rows = [[None for _ in range(self.config.GRID_WIDTH)] for _ in range(num_lines)]
+            self.grid = new_rows + self.grid
 
             self.clearing_lines = []
             self.spawn_new_piece()
