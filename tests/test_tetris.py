@@ -31,7 +31,7 @@ class TestTetromino:
 
     def test_all_shapes_exist(self):
         """Test that all 7 tetromino shapes can be created"""
-        for shape_type in SHAPES.keys():
+        for shape_type in SHAPES:
             piece = Tetromino(shape_type)
             assert piece.type == shape_type
             assert piece.color == COLORS[shape_type]
@@ -319,7 +319,7 @@ class TestConstants:
     def test_all_colors_defined(self):
         """Test all colors are defined for each shape"""
         assert len(COLORS) == 7
-        for shape in SHAPES.keys():
+        for shape in SHAPES:
             assert shape in COLORS
             # Each color should be an RGB tuple
             assert len(COLORS[shape]) == 3
@@ -466,7 +466,9 @@ class TestGameConfig:
         pygame.init()
 
         # Create a custom config class
-        class CustomConfig(GameConfig):
+        class CustomConfig(GameConfig):  # pylint: disable=too-few-public-methods
+            """Custom configuration for testing with modified settings"""
+
             INITIAL_FALL_SPEED = 500  # Faster falling
             LINES_PER_LEVEL = 5  # Level up faster
             LINE_SCORES = {1: 200, 2: 600, 3: 1000, 4: 1600}  # Double points
@@ -486,7 +488,9 @@ class TestGameConfig:
         """Test tetromino creation with custom config"""
         pygame.init()
 
-        class CustomConfig(GameConfig):
+        class CustomConfig(GameConfig):  # pylint: disable=too-few-public-methods
+            """Custom configuration for testing with wider grid"""
+
             GRID_WIDTH = 15  # Wider grid
             GRID_HEIGHT = 25  # Taller grid
 
@@ -524,7 +528,9 @@ class TestGameConfig:
         """Test that custom config affects scoring"""
         pygame.init()
 
-        class HighScoreConfig(GameConfig):
+        class HighScoreConfig(GameConfig):  # pylint: disable=too-few-public-methods
+            """Custom configuration for testing with higher scores"""
+
             LINE_SCORES = {1: 500, 2: 1500, 3: 2500, 4: 4000}
             SOFT_DROP_BONUS = 5
 

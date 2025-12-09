@@ -12,7 +12,7 @@ import pygame
 pygame.init()
 
 
-class GameConfig:
+class GameConfig:  # pylint: disable=too-few-public-methods
     """Centralized game configuration"""
 
     # Display settings
