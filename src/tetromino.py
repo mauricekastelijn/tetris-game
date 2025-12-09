@@ -4,7 +4,7 @@ Tetromino (Tetris piece) class and related functionality.
 
 from typing import List, Tuple
 
-from config import GameConfig
+from src.config import GameConfig
 
 
 class Tetromino:

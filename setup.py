@@ -20,8 +20,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/tetris-ultimate",
-    packages=find_packages(),
-    py_modules=["tetris", "config", "tetromino", "game_states"],
+    packages=find_packages(include=["src", "src.*"]),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
@@ -40,7 +39,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "tetris=tetris:main",
+            "tetris=src.tetris:main",
         ],
     },
     keywords="tetris game puzzle pygame",
