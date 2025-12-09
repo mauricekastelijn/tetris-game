@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -29,7 +31,14 @@ jobs:
     
     - name: Extract version from tag
       id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      run: |
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "IS_DRAFT=false" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=draft-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
+          echo "IS_DRAFT=true" >> $GITHUB_OUTPUT
+        fi
     
     - name: Update version in setup.py
       run: |
@@ -45,6 +54,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: Tetris Ultimate Edition ${{ steps.get_version.outputs.VERSION }}
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
         body: |
           ## 🎮 Tetris Ultimate Edition v${{ steps.get_version.outputs.VERSION }}
           
@@ -80,7 +90,7 @@ jobs:
         files: |
           dist/tetris_ultimate-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
           dist/tetris_ultimate-${{ steps.get_version.outputs.VERSION }}.tar.gz
-        draft: false
+        draft: ${{ steps.get_version.outputs.IS_DRAFT }}
         prerelease: false
     
     # Uncomment to publish to PyPI
