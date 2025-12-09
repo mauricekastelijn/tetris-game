@@ -20,7 +20,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/tetris-ultimate",
-    packages=find_packages(include=['src', 'src.*']),
+    packages=find_packages(include=["src", "src.*"]),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
