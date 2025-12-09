@@ -33,8 +33,8 @@ assignees: ""
 ### Before Starting
 
 1. Wait for maintainer approval/feedback on this issue
-2. Review [Coding Standards](.github/CODING_STANDARDS.md) - **Critical for AI agents**
-3. Read [Development Guide](../doc/DEVELOPMENT.md) for setup instructions
+2. Review [Coding Standards](../CODING_STANDARDS.md) - **Critical for AI agents**
+3. Read [Development Guide](../../doc/DEVELOPMENT.md) for setup instructions
 
 ### Implementation Checklist
 
@@ -44,4 +44,4 @@ assignees: ""
 - [ ] Documentation updated (if needed)
 - [ ] All pre-commit hooks pass
 
-**AI Agents**: See [CODING_STANDARDS.md](.github/CODING_STANDARDS.md) for mandatory workflow requirements.
+**AI Agents**: See [CODING_STANDARDS.md](../CODING_STANDARDS.md) for mandatory workflow requirements.

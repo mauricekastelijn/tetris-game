@@ -38,6 +38,6 @@ assignees: ""
 
 **For Contributors**: Before submitting a PR to fix this issue, please review:
 
-- [Coding Standards](.github/CODING_STANDARDS.md) - **Required for AI agents**
-- [Development Guide](../doc/DEVELOPMENT.md) - Setup and testing guide
+- [Coding Standards](../CODING_STANDARDS.md) - **Required for AI agents**
+- [Development Guide](../../doc/DEVELOPMENT.md) - Setup and testing guide
 - Run `python scripts/lint_fix.py --verbose` before submitting
