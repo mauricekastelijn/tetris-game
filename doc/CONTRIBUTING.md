@@ -6,7 +6,7 @@ Thank you for contributing! Please follow these guidelines:
 
 1. Check existing [issues](https://github.com/mauricekastelijn/tetris-game/issues) to avoid duplicates
 2. Review [DEVELOPMENT.md](DEVELOPMENT.md) for setup and code quality requirements
-3. Read [CODING_STANDARDS.md](.github/CODING_STANDARDS.md) - **mandatory for all contributors**
+3. Read [CODING_STANDARDS.md](../.github/CODING_STANDARDS.md) - **mandatory for all contributors**
 
 ## Pull Request Workflow
 
@@ -16,7 +16,7 @@ Thank you for contributing! Please follow these guidelines:
 4. Ensure tests pass: `pytest tests/ -v`
 5. Submit PR using the provided template
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup and [CODING_STANDARDS.md](.github/CODING_STANDARDS.md) for code quality requirements.
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup and [CODING_STANDARDS.md](../.github/CODING_STANDARDS.md) for code quality requirements.
 
 ## Type Hints and Documentation Standards
 
@@ -41,7 +41,7 @@ def process_blocks(blocks: List[Tuple[int, int]], color: Optional[Tuple[int, int
 ```
 
 **Type checking:**
-- Run `mypy tetris.py` before submitting to ensure type correctness
+- Run `mypy src/` before submitting to ensure type correctness
 - Fix all mypy errors (warnings about pygame imports can be ignored)
 - Use type guards (`if x is not None:`) to handle `Optional` types
 
@@ -102,6 +102,6 @@ def move_piece(self, dx: int, dy: int) -> bool:
 
 Before submitting your PR:
 1. Run `python scripts/lint_fix.py --verbose` to auto-fix formatting
-2. Run `mypy tetris.py` to check type correctness
+2. Run `mypy src/` to check type correctness
 3. Run `pytest tests/ -v` to ensure all tests pass
 4. Review docstrings for completeness and clarity

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pygame
 
 if TYPE_CHECKING:
-    from tetris import TetrisGame
+    from src.tetris import TetrisGame
 
 
 class GameState:

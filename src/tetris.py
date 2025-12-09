@@ -8,9 +8,9 @@ from typing import List, Optional, Tuple
 
 import pygame
 
-from config import GameConfig
-from game_states import GameOverState, GameState, LineClearingState, PlayingState
-from tetromino import Tetromino
+from src.config import GameConfig
+from src.game_states import GameOverState, GameState, LineClearingState, PlayingState
+from src.tetromino import Tetromino
 
 # Initialize Pygame
 pygame.init()

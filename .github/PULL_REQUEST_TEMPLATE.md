@@ -44,7 +44,7 @@
 
 <!-- If this PR was created/assisted by an AI coding agent -->
 
-- [ ] Followed [CODING_STANDARDS.md](.github/CODING_STANDARDS.md) requirements
+- [ ] Followed [CODING_STANDARDS.md](CODING_STANDARDS.md) requirements
 - [ ] Ran `python scripts/lint_fix.py --verbose` before completion
 - [ ] All linting output reviewed and issues resolved
 - [ ] Tests executed and verified passing

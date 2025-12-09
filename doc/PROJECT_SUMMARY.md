@@ -15,7 +15,7 @@ Fully productized Tetris game ready for deployment and distribution.
 
 ## Distribution Methods
 
-1. **Source**: `python tetris.py`
+1. **Source**: `python -m src.tetris`
 2. **Package**: `pip install -e . && tetris`
 3. **Executable**: PyInstaller build
 4. **PyPI**: Ready for publishing
@@ -40,4 +40,4 @@ git push origin v1.0.0
 
 **PyPI Publishing**: Uncomment PyPI section in release workflow, add `PYPI_API_TOKEN` secret, push tag.
 
-See [README.md](README.md) for features and installation, [DEVELOPMENT.md](DEVELOPMENT.md) for development guide.
+See [README.md](../README.md) for features and installation, [DEVELOPMENT.md](DEVELOPMENT.md) for development guide.

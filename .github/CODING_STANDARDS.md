@@ -48,9 +48,14 @@
 #### File Organization
 
 ```
-tetris.py           # Main game code
+src/                # Source code
+  tetris.py         # Main game code
+  config.py         # Game configuration
+  tetromino.py      # Tetromino class
+  game_states.py    # Game state classes
 tests/              # Test files
 scripts/            # Utility scripts including lint_fix.py
+doc/                # Documentation files
 .github/workflows/  # CI/CD automation
 ```
 
