@@ -2,42 +2,35 @@
 Test suite for Tetris Ultimate Edition
 """
 
+from typing import Generator
+
 import pygame
 import pytest
 
-from tetris import (
-    COLORS,
-    GRID_HEIGHT,
-    GRID_WIDTH,
-    SHAPES,
-    GameConfig,
-    GameOverState,
-    LineClearingState,
-    PausedState,
-    PlayingState,
-    TetrisGame,
-    Tetromino,
-)
+from config import GameConfig
+from game_states import GameOverState, LineClearingState, PausedState, PlayingState
+from tetris import COLORS, GRID_HEIGHT, GRID_WIDTH, SHAPES, TetrisGame
+from tetromino import Tetromino
 
 
 class TestTetromino:
     """Test the Tetromino class"""
 
-    def test_tetromino_creation(self):
+    def test_tetromino_creation(self) -> None:
         """Test creating a tetromino"""
         piece = Tetromino("I")
         assert piece.type == "I"
         assert piece.color == COLORS["I"]
         assert len(piece.shape) > 0
 
-    def test_all_shapes_exist(self):
+    def test_all_shapes_exist(self) -> None:
         """Test that all 7 tetromino shapes can be created"""
         for shape_type in SHAPES:
             piece = Tetromino(shape_type)
             assert piece.type == shape_type
             assert piece.color == COLORS[shape_type]
 
-    def test_tetromino_rotation_clockwise(self):
+    def test_tetromino_rotation_clockwise(self) -> None:
         """Test clockwise rotation"""
         piece = Tetromino("T")
         original_shape = [row[:] for row in piece.shape]
@@ -45,7 +38,7 @@ class TestTetromino:
         # Shape should change after rotation
         assert piece.shape != original_shape
 
-    def test_tetromino_rotation_counterclockwise(self):
+    def test_tetromino_rotation_counterclockwise(self) -> None:
         """Test counterclockwise rotation"""
         piece = Tetromino("T")
         original_shape = [row[:] for row in piece.shape]
@@ -53,7 +46,7 @@ class TestTetromino:
         # Shape should change after rotation
         assert piece.shape != original_shape
 
-    def test_tetromino_copy(self):
+    def test_tetromino_copy(self) -> None:
         """Test copying a tetromino"""
         piece = Tetromino("I")
         piece.x = 5
@@ -68,7 +61,7 @@ class TestTetromino:
         copy.x = 10
         assert piece.x == 5
 
-    def test_get_blocks(self):
+    def test_get_blocks(self) -> None:
         """Test getting block positions"""
         piece = Tetromino("O")
         blocks = piece.get_blocks()
@@ -84,14 +77,15 @@ class TestTetrisGame:
     """Test the TetrisGame class"""
 
     @pytest.fixture
-    def game(self):
+    # type: ignore[misc]
+    def game(self) -> Generator[TetrisGame, None, None]:
         """Create a game instance for testing"""
         pygame.init()
         game = TetrisGame()
         yield game
         pygame.quit()
 
-    def test_game_initialization(self, game):
+    def test_game_initialization(self, game: TetrisGame) -> None:
         """Test game initializes correctly"""
         assert game.score == 0
         assert game.level == 1
@@ -102,7 +96,7 @@ class TestTetrisGame:
         assert game.current_piece is not None
         assert game.next_piece is not None
 
-    def test_spawn_new_piece(self, game):
+    def test_spawn_new_piece(self, game: TetrisGame) -> None:
         """Test spawning a new piece"""
         old_piece = game.current_piece
         game.spawn_new_piece()
@@ -110,7 +104,7 @@ class TestTetrisGame:
         assert game.current_piece != old_piece
         assert game.current_piece is not None
 
-    def test_is_valid_position(self, game):
+    def test_is_valid_position(self, game: TetrisGame) -> None:
         """Test position validation"""
         # Current piece at start should be valid
         assert game.is_valid_position(game.current_piece)
@@ -127,7 +121,7 @@ class TestTetrisGame:
         piece.y = GRID_HEIGHT  # Bottom boundary
         assert not game.is_valid_position(piece)
 
-    def test_move_piece(self, game):
+    def test_move_piece(self, game: TetrisGame) -> None:
         """Test moving pieces"""
         original_x = game.current_piece.x
         original_y = game.current_piece.y
@@ -144,7 +138,7 @@ class TestTetrisGame:
         if result:
             assert game.current_piece.y == original_y + 1
 
-    def test_rotate_piece(self, game):
+    def test_rotate_piece(self, game: TetrisGame) -> None:
         """Test piece rotation"""
         game.rotate_piece()
         # Shape should change after rotation (unless it's O piece)
@@ -152,14 +146,14 @@ class TestTetrisGame:
             # For most pieces, rotation changes shape
             pass  # Shape might be same if rotation failed due to collision
 
-    def test_ghost_piece(self, game):
+    def test_ghost_piece(self, game: TetrisGame) -> None:
         """Test ghost piece calculation"""
         ghost = game.get_ghost_piece()
         # Ghost piece should be at same or lower position
         assert ghost.y >= game.current_piece.y
         assert ghost.x == game.current_piece.x
 
-    def test_scoring_single_line(self, game):
+    def test_scoring_single_line(self, game: TetrisGame) -> None:
         """Test scoring for single line clear"""
         # Fill bottom row except one column
         for x in range(GRID_WIDTH):
@@ -176,7 +170,7 @@ class TestTetrisGame:
         assert game.score > initial_score
         assert game.lines_cleared == 1
 
-    def test_level_progression(self, game):
+    def test_level_progression(self, game: TetrisGame) -> None:
         """Test level increases after 10 lines"""
         game.lines_cleared = 9
         game.clear_lines()
@@ -193,7 +187,7 @@ class TestTetrisGame:
         # After 10 lines, level should be 2
         assert game.level >= initial_level
 
-    def test_hold_piece(self, game):
+    def test_hold_piece(self, game: TetrisGame) -> None:
         """Test hold piece functionality"""
         original_type = game.current_piece.type
         game.hold_current_piece()
@@ -204,13 +198,13 @@ class TestTetrisGame:
         # Can't hold again immediately
         assert game.can_hold is False
 
-    def test_ghost_toggle(self, game):
+    def test_ghost_toggle(self, game: TetrisGame) -> None:
         """Test ghost piece toggle"""
         original_state = game.show_ghost
         game.show_ghost = not game.show_ghost
         assert game.show_ghost != original_state
 
-    def test_reset_game(self, game):
+    def test_reset_game(self, game: TetrisGame) -> None:
         """Test game reset"""
         # Modify game state
         game.score = 100
@@ -228,7 +222,7 @@ class TestTetrisGame:
         assert game.game_over is False
         assert game.clearing_lines == []
 
-    def test_grid_is_empty_initially(self, game):
+    def test_grid_is_empty_initially(self, game: TetrisGame) -> None:
         """Test that grid starts empty"""
         for row in game.grid:
             for cell in row:
@@ -239,14 +233,15 @@ class TestGameLogic:
     """Test game logic and mechanics"""
 
     @pytest.fixture
-    def game(self):
+    # type: ignore[misc]
+    def game(self) -> Generator[TetrisGame, None, None]:
         """Create a game instance for testing"""
         pygame.init()
         game = TetrisGame()
         yield game
         pygame.quit()
 
-    def test_line_clear_animation(self, game):
+    def test_line_clear_animation(self, game: TetrisGame) -> None:
         """Test line clearing animation"""
         # Fill a line
         for x in range(GRID_WIDTH):
@@ -258,7 +253,7 @@ class TestGameLogic:
         assert len(game.clearing_lines) > 0
         assert game.clear_animation_time >= 0
 
-    def test_animation_completion(self, game):
+    def test_animation_completion(self, game: TetrisGame) -> None:
         """Test animation completes and removes lines"""
         # Fill a line
         for x in range(GRID_WIDTH):
@@ -275,7 +270,7 @@ class TestGameLogic:
         # Bottom row should be empty after clearing
         assert all(cell is None for cell in game.grid[GRID_HEIGHT - 1])
 
-    def test_multiple_line_clear(self, game):
+    def test_multiple_line_clear(self, game: TetrisGame) -> None:
         """Test clearing multiple lines at once"""
         # Fill multiple lines
         for y in range(GRID_HEIGHT - 2, GRID_HEIGHT):
@@ -287,7 +282,7 @@ class TestGameLogic:
         # Should detect 2 lines
         assert len(game.clearing_lines) == 2
 
-    def test_scoring_increases_with_level(self, game):
+    def test_scoring_increases_with_level(self, game: TetrisGame) -> None:
         """Test that scoring scales with level"""
         game.level = 1
         for x in range(GRID_WIDTH):
@@ -310,14 +305,14 @@ class TestGameLogic:
 class TestConstants:
     """Test game constants are valid"""
 
-    def test_all_shapes_defined(self):
+    def test_all_shapes_defined(self) -> None:
         """Test all 7 tetromino shapes are defined"""
         assert len(SHAPES) == 7
         expected_shapes = ["I", "O", "T", "S", "Z", "J", "L"]
         for shape in expected_shapes:
             assert shape in SHAPES
 
-    def test_all_colors_defined(self):
+    def test_all_colors_defined(self) -> None:
         """Test all colors are defined for each shape"""
         assert len(COLORS) == 7
         for shape in SHAPES:
@@ -325,7 +320,7 @@ class TestConstants:
             # Each color should be an RGB tuple
             assert len(COLORS[shape]) == 3
 
-    def test_grid_dimensions(self):
+    def test_grid_dimensions(self) -> None:
         """Test grid dimensions are reasonable"""
         assert GRID_WIDTH == 10
         assert GRID_HEIGHT == 20
@@ -335,18 +330,19 @@ class TestGameStates:
     """Test the State Pattern implementation"""
 
     @pytest.fixture
-    def game(self):
+    # type: ignore[misc]
+    def game(self) -> Generator[TetrisGame, None, None]:
         """Create a game instance for testing"""
         pygame.init()
         game = TetrisGame()
         yield game
         pygame.quit()
 
-    def test_initial_state_is_playing(self, game):
+    def test_initial_state_is_playing(self, game: TetrisGame) -> None:
         """Test game starts in PlayingState"""
         assert isinstance(game.state, PlayingState)
 
-    def test_pause_state_transition(self, game):
+    def test_pause_state_transition(self, game: TetrisGame) -> None:
         """Test transitioning to paused state"""
         # Create a pause event
         event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_p})
@@ -355,7 +351,7 @@ class TestGameStates:
         # Should be in paused state
         assert isinstance(game.state, PausedState)
 
-    def test_unpause_state_transition(self, game):
+    def test_unpause_state_transition(self, game: TetrisGame) -> None:
         """Test transitioning from paused back to playing"""
         # Pause the game
         game.state = PausedState()
@@ -367,7 +363,7 @@ class TestGameStates:
         # Should be back to playing
         assert isinstance(game.state, PlayingState)
 
-    def test_game_over_state_transition(self, game):
+    def test_game_over_state_transition(self, game: TetrisGame) -> None:
         """Test transitioning to game over state"""
         # Set game over condition
         game.game_over = True
@@ -375,7 +371,7 @@ class TestGameStates:
 
         assert isinstance(game.state, GameOverState)
 
-    def test_restart_from_game_over(self, game):
+    def test_restart_from_game_over(self, game: TetrisGame) -> None:
         """Test restarting game from game over state"""
         # Set to game over
         game.state = GameOverState()
@@ -389,7 +385,7 @@ class TestGameStates:
         assert isinstance(game.state, PlayingState)
         assert game.game_over is False
 
-    def test_line_clearing_state_transition(self, game):
+    def test_line_clearing_state_transition(self, game: TetrisGame) -> None:
         """Test transitioning to line clearing state"""
         # Fill a line
         for x in range(GRID_WIDTH):
@@ -401,7 +397,7 @@ class TestGameStates:
         # Should be in line clearing state
         assert isinstance(game.state, LineClearingState)
 
-    def test_line_clearing_completes(self, game):
+    def test_line_clearing_completes(self, game: TetrisGame) -> None:
         """Test line clearing transitions back to playing"""
         # Fill a line and start clearing
         for x in range(GRID_WIDTH):
@@ -414,7 +410,7 @@ class TestGameStates:
         # Should be back to playing
         assert isinstance(game.state, PlayingState)
 
-    def test_paused_state_no_update(self, game):
+    def test_paused_state_no_update(self, game: TetrisGame) -> None:
         """Test that paused state doesn't update game logic"""
         game.state = PausedState()
         original_fall_time = game.fall_time
@@ -424,7 +420,7 @@ class TestGameStates:
 
         assert game.fall_time == original_fall_time
 
-    def test_paused_state_no_movement(self, game):
+    def test_paused_state_no_movement(self, game: TetrisGame) -> None:
         """Test that pieces can't move while paused"""
         game.state = PausedState()
         original_x = game.current_piece.x
@@ -436,7 +432,7 @@ class TestGameStates:
         # Piece should not have moved
         assert game.current_piece.x == original_x
 
-    def test_playing_state_handles_movement(self, game):
+    def test_playing_state_handles_movement(self, game: TetrisGame) -> None:
         """Test that playing state handles movement input"""
         game.state = PlayingState()
 
@@ -453,7 +449,7 @@ class TestGameStates:
 class TestGameConfig:
     """Test the GameConfig class and config-based initialization"""
 
-    def test_game_with_default_config(self):
+    def test_game_with_default_config(self) -> None:
         """Test game initialization with default config"""
         pygame.init()
         game = TetrisGame()
@@ -462,7 +458,7 @@ class TestGameConfig:
         assert game.clear_animation_duration == GameConfig.CLEAR_ANIMATION_DURATION
         pygame.quit()
 
-    def test_game_with_custom_config(self):
+    def test_game_with_custom_config(self) -> None:
         """Test game initialization with custom config"""
         pygame.init()
 
@@ -485,7 +481,7 @@ class TestGameConfig:
 
         pygame.quit()
 
-    def test_tetromino_with_custom_config(self):
+    def test_tetromino_with_custom_config(self) -> None:
         """Test tetromino creation with custom config"""
         pygame.init()
 
@@ -502,7 +498,7 @@ class TestGameConfig:
 
         pygame.quit()
 
-    def test_config_values_are_correct(self):
+    def test_config_values_are_correct(self) -> None:
         """Test that GameConfig has all expected values"""
         # Display settings
         assert GameConfig.SCREEN_WIDTH == 800
@@ -525,7 +521,7 @@ class TestGameConfig:
         assert GameConfig.HARD_DROP_BONUS == 2
         assert GameConfig.LINES_PER_LEVEL == 10
 
-    def test_scoring_with_custom_config(self):
+    def test_scoring_with_custom_config(self) -> None:
         """Test that custom config affects scoring"""
         pygame.init()
 
