@@ -186,9 +186,7 @@ def lint_with_pylint(verbose: bool) -> bool:
     print_header("Pylint Linting")
 
     # Find all Python files in the src directory
-    python_files = [
-        f for f in glob.glob("src/*.py") if not f.endswith("__init__.py")
-    ]
+    python_files = [f for f in glob.glob("src/*.py") if not f.endswith("__init__.py")]
 
     if not python_files:
         print_step("No Python files found to lint", "warning")
