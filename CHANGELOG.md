@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.0...v1.0.1) (2025-12-09)
+
+
+### Bug Fixes
+
+* package name ([9f5c04e](https://github.com/mauricekastelijn/tetris-game/commit/9f5c04ee94a7e0fa614197436eaad9ff84763593))
+
 ## [1.0.0] - 2025-12-09
 
 ### Added

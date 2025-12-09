@@ -13,7 +13,7 @@ with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="tetris-ultimate",
-    version="1.0.0",
+    version="1.0.1",
     author="GitHub Copilot",
     author_email="",
     description="A modern Tetris game with advanced features",
