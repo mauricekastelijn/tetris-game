@@ -285,9 +285,9 @@ class TestGameLogic:
         # Complete the animation
         game.finish_clearing_animation()
 
-        # Both lines should be cleared - bottom rows should be empty
-        assert all(cell is None for cell in game.grid[GRID_HEIGHT - 1])
-        assert all(cell is None for cell in game.grid[GRID_HEIGHT - 2])
+        # Both lines should be cleared - new empty rows should be at the top
+        assert all(cell is None for cell in game.grid[0])
+        assert all(cell is None for cell in game.grid[1])
 
     def test_clear_four_lines_tetris(self, game: TetrisGame) -> None:
         """Test clearing four lines at once (Tetris)"""
@@ -304,8 +304,8 @@ class TestGameLogic:
         # Complete the animation
         game.finish_clearing_animation()
 
-        # All 4 lines should be cleared
-        for y in range(GRID_HEIGHT - 4, GRID_HEIGHT):
+        # All 4 lines should be cleared - new empty rows should be at the top
+        for y in range(0, 4):
             assert all(cell is None for cell in game.grid[y])
 
     def test_clear_non_consecutive_lines(self, game: TetrisGame) -> None:
