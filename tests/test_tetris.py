@@ -449,5 +449,100 @@ class TestGameStates:
         assert isinstance(game.state, PlayingState)
 
 
+class TestGameConfig:
+    """Test the GameConfig class and config-based initialization"""
+
+    def test_game_with_default_config(self):
+        """Test game initialization with default config"""
+        pygame.init()
+        game = TetrisGame()
+        assert game.config == GameConfig
+        assert game.fall_speed == GameConfig.INITIAL_FALL_SPEED
+        assert game.clear_animation_duration == GameConfig.CLEAR_ANIMATION_DURATION
+        pygame.quit()
+
+    def test_game_with_custom_config(self):
+        """Test game initialization with custom config"""
+        pygame.init()
+
+        # Create a custom config class
+        class CustomConfig(GameConfig):
+            INITIAL_FALL_SPEED = 500  # Faster falling
+            LINES_PER_LEVEL = 5  # Level up faster
+            LINE_SCORES = {1: 200, 2: 600, 3: 1000, 4: 1600}  # Double points
+            SOFT_DROP_BONUS = 2
+            HARD_DROP_BONUS = 4
+
+        game = TetrisGame(CustomConfig)
+
+        assert game.config == CustomConfig
+        assert game.fall_speed == 500
+        assert game.config.LINES_PER_LEVEL == 5
+        assert game.config.LINE_SCORES[1] == 200
+
+        pygame.quit()
+
+    def test_tetromino_with_custom_config(self):
+        """Test tetromino creation with custom config"""
+        pygame.init()
+
+        class CustomConfig(GameConfig):
+            GRID_WIDTH = 15  # Wider grid
+            GRID_HEIGHT = 25  # Taller grid
+
+        piece = Tetromino("I", CustomConfig)
+        assert piece.config == CustomConfig
+        # Verify piece spawns centered in wider grid
+        assert piece.x == CustomConfig.GRID_WIDTH // 2 - len(piece.shape[0]) // 2
+
+        pygame.quit()
+
+    def test_config_values_are_correct(self):
+        """Test that GameConfig has all expected values"""
+        # Display settings
+        assert GameConfig.SCREEN_WIDTH == 800
+        assert GameConfig.SCREEN_HEIGHT == 700
+        assert GameConfig.BLOCK_SIZE == 30
+
+        # Grid settings
+        assert GameConfig.GRID_WIDTH == 10
+        assert GameConfig.GRID_HEIGHT == 20
+
+        # Timing settings
+        assert GameConfig.INITIAL_FALL_SPEED == 1000
+        assert GameConfig.CLEAR_ANIMATION_DURATION == 500
+        assert GameConfig.LEVEL_SPEED_DECREASE == 100
+        assert GameConfig.MIN_FALL_SPEED == 100
+
+        # Scoring
+        assert GameConfig.LINE_SCORES == {1: 100, 2: 300, 3: 500, 4: 800}
+        assert GameConfig.SOFT_DROP_BONUS == 1
+        assert GameConfig.HARD_DROP_BONUS == 2
+        assert GameConfig.LINES_PER_LEVEL == 10
+
+    def test_scoring_with_custom_config(self):
+        """Test that custom config affects scoring"""
+        pygame.init()
+
+        class HighScoreConfig(GameConfig):
+            LINE_SCORES = {1: 500, 2: 1500, 3: 2500, 4: 4000}
+            SOFT_DROP_BONUS = 5
+
+        game = TetrisGame(HighScoreConfig)
+
+        # Fill a line and clear it
+        for x in range(game.config.GRID_WIDTH):
+            game.grid[game.config.GRID_HEIGHT - 1][x] = game.config.COLORS["I"]
+
+        initial_score = game.score
+        game.clear_lines()
+
+        # Score should use custom line scores
+        expected_score = initial_score + HighScoreConfig.LINE_SCORES[1] * game.level
+        assert game.score == expected_score
+
+        pygame.quit()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
