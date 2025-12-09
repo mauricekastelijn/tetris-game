@@ -13,15 +13,14 @@ with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="tetris-ultimate",
-    version="1.0.1",
+    version="1.0.0",
     author="GitHub Copilot",
     author_email="",
     description="A modern Tetris game with advanced features",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/tetris-ultimate",
-    packages=find_packages(),
-    py_modules=["tetris", "config", "tetromino", "game_states"],
+    packages=find_packages(include=["src", "src.*"]),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
@@ -40,7 +39,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "tetris=tetris:main",
+            "tetris=src.tetris:main",
         ],
     },
     keywords="tetris game puzzle pygame",

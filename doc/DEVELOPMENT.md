@@ -26,7 +26,7 @@ python scripts/setup_hooks.py  # Auto-check on git commit
 
 ## AI Coding Agents
 
-**Mandatory**: Read `.github/CODING_STANDARDS.md`. Always run `python scripts/lint_fix.py --verbose` before task completion.
+**Mandatory**: Read `../.github/CODING_STANDARDS.md`. Always run `python scripts/lint_fix.py --verbose` before task completion.
 
 ## Manual Commands
 
@@ -35,9 +35,9 @@ python scripts/setup_hooks.py  # Auto-check on git commit
 black .           # Format
 isort .           # Sort imports
 flake8            # Style check
-pylint *.py       # Lint source files
+pylint src/*.py   # Lint source files
 pytest tests/ -v  # Test
-pytest tests/ -v --cov=tetris --cov-report=html  # Coverage
+pytest tests/ -v --cov=src --cov-report=html  # Coverage
 ```
 
 ## CI/CD Workflows
@@ -73,4 +73,4 @@ pytest tests/ -v --cov=tetris --cov-report=html  # Coverage
 - `.pylintrc`, `.flake8`, `pyproject.toml` (tool configs)
 - `.pre-commit-config.yaml` (git hooks)
 
-See [`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md) for AI agent requirements.
+See [`../.github/CODING_STANDARDS.md`](../.github/CODING_STANDARDS.md) for AI agent requirements.

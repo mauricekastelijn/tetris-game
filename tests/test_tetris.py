@@ -7,10 +7,10 @@ from typing import Generator
 import pygame
 import pytest
 
-from config import GameConfig
-from game_states import GameOverState, LineClearingState, PausedState, PlayingState
-from tetris import COLORS, GRID_HEIGHT, GRID_WIDTH, SHAPES, TetrisGame
-from tetromino import Tetromino
+from src.config import GameConfig
+from src.game_states import GameOverState, LineClearingState, PausedState, PlayingState
+from src.tetris import COLORS, GRID_HEIGHT, GRID_WIDTH, SHAPES, TetrisGame
+from src.tetromino import Tetromino
 
 
 class TestTetromino:

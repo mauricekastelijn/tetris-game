@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tetris-ultimate"
-version = "1.0.1"
+version = "1.0.0"
 description = "A modern Tetris game with advanced features"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -35,7 +35,7 @@ Homepage = "https://github.com/mauricekastelijn/tetris-game"
 "Source" = "https://github.com/mauricekastelijn/tetris-game"
 
 [project.scripts]
-tetris = "tetris:main"
+tetris = "src.tetris:main"
 
 # Black formatter configuration
 [tool.black]
@@ -75,7 +75,7 @@ use_parentheses = true
 ensure_newline_before_comments = true
 skip_gitignore = true
 skip = [".venv", "venv", "env", ".tox", ".eggs", "*.egg-info", "build", "dist"]
-known_first_party = ["tetris"]
+known_first_party = ["src"]
 known_third_party = ["pygame", "pytest"]
 
 # Pylint configuration
@@ -158,7 +158,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["tetris", "config", "tetromino", "game_states"]
+source = ["src"]
 omit = [
     "tests/*",
     "setup.py",

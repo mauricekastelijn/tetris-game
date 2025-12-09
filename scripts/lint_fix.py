@@ -185,9 +185,9 @@ def lint_with_pylint(verbose: bool) -> bool:
     """Run pylint linter on main source files (auto-discovered via regex)"""
     print_header("Pylint Linting")
 
-    # Find all Python files in the project root (not in tests or .venv)
+    # Find all Python files in the src directory (including subdirectories)
     python_files = [
-        f for f in glob.glob("*.py") if not f.startswith("setup") and not f.startswith(".")
+        f for f in glob.glob("src/**/*.py", recursive=True) if not f.endswith("__init__.py")
     ]
 
     if not python_files:
