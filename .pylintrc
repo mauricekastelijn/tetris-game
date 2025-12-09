@@ -1,0 +1,17 @@
+[MASTER]
+# Extension package whitelist for C extensions
+extension-pkg-whitelist=pygame
+
+[MESSAGES CONTROL]
+# Disable warnings that are acceptable for a game class
+disable=
+    too-many-instance-attributes,
+    too-many-public-methods
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=100
+
+[DESIGN]
+# Maximum number of branches for function / method body
+max-branches=15
