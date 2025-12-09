@@ -507,7 +507,8 @@ class TetrisGame:
                 (self.config.GRID_X + x * self.config.BLOCK_SIZE, self.config.GRID_Y),
                 (
                     self.config.GRID_X + x * self.config.BLOCK_SIZE,
-                    self.config.GRID_Y + self.config.GRID_HEIGHT * self.config.BLOCK_SIZE,
+                    self.config.GRID_Y
+                    + self.config.GRID_HEIGHT * self.config.BLOCK_SIZE,
                 ),
             )
 
@@ -517,7 +518,8 @@ class TetrisGame:
                 self.config.GRAY,
                 (self.config.GRID_X, self.config.GRID_Y + y * self.config.BLOCK_SIZE),
                 (
-                    self.config.GRID_X + self.config.GRID_WIDTH * self.config.BLOCK_SIZE,
+                    self.config.GRID_X
+                    + self.config.GRID_WIDTH * self.config.BLOCK_SIZE,
                     self.config.GRID_Y + y * self.config.BLOCK_SIZE,
                 ),
             )
