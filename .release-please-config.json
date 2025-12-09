@@ -2,7 +2,7 @@
   "release-type": "python",
   "packages": {
     ".": {
-      "package-name": "tetris-ultimate",
+      "package-name": "tetris_ultimate",
       "changelog-path": "CHANGELOG.md"
     }
   },
