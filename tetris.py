@@ -398,12 +398,22 @@ class TetrisGame:
 
         Note:
             This is called by LineClearingState when animation completes.
-            Rows are removed in reverse order to maintain correct indices.
+            Rows are removed in descending order to maintain correct indices,
+            then empty rows are inserted at the top.
         """
         if self.clearing_lines:
-            for y in reversed(self.clearing_lines):
+            # Sort in descending order to maintain valid indices during deletion
+            sorted_lines = sorted(self.clearing_lines, reverse=True)
+            num_lines = len(sorted_lines)
+
+            # Delete lines from bottom to top to avoid index shifting issues
+            for y in sorted_lines:
                 del self.grid[y]
-                self.grid.insert(0, [None for _ in range(self.config.GRID_WIDTH)])
+
+            # Insert empty rows at the top (bulk operation for efficiency)
+            new_rows = [[None for _ in range(self.config.GRID_WIDTH)] for _ in range(num_lines)]
+            self.grid = new_rows + self.grid
+
             self.clearing_lines = []
             self.spawn_new_piece()
 

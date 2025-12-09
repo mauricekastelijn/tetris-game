@@ -282,6 +282,61 @@ class TestGameLogic:
         # Should detect 2 lines
         assert len(game.clearing_lines) == 2
 
+        # Complete the animation
+        game.finish_clearing_animation()
+
+        # Both lines should be cleared - new empty rows should be at the top
+        assert all(cell is None for cell in game.grid[0])
+        assert all(cell is None for cell in game.grid[1])
+
+    def test_clear_four_lines_tetris(self, game: TetrisGame) -> None:
+        """Test clearing four lines at once (Tetris)"""
+        # Fill bottom 4 lines
+        for y in range(GRID_HEIGHT - 4, GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                game.grid[y][x] = COLORS["I"]
+
+        game.clear_lines()
+
+        # Should detect 4 lines
+        assert len(game.clearing_lines) == 4
+
+        # Complete the animation
+        game.finish_clearing_animation()
+
+        # All 4 lines should be cleared - new empty rows should be at the top
+        for y in range(0, 4):
+            assert all(cell is None for cell in game.grid[y])
+
+    def test_clear_non_consecutive_lines(self, game: TetrisGame) -> None:
+        """Test clearing non-consecutive lines"""
+        # Fill lines 17 and 19 (leave 18 empty)
+        for x in range(GRID_WIDTH):
+            game.grid[GRID_HEIGHT - 3][x] = COLORS["I"]  # Third from bottom
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["T"]  # Bottom line
+
+        # Leave line 18 partially filled
+        game.grid[GRID_HEIGHT - 2][0] = COLORS["S"]
+
+        game.clear_lines()
+
+        # Should detect 2 lines (17 and 19)
+        assert len(game.clearing_lines) == 2
+        assert GRID_HEIGHT - 3 in game.clearing_lines
+        assert GRID_HEIGHT - 1 in game.clearing_lines
+
+        # Complete the animation
+        game.finish_clearing_animation()
+
+        # The two full lines should be cleared
+        # Line 18 should have moved down to line 19, and still have the partial block
+        assert game.grid[GRID_HEIGHT - 1][0] == COLORS["S"]
+        # Other cells in bottom line should be empty
+        for x in range(1, GRID_WIDTH):
+            assert game.grid[GRID_HEIGHT - 1][x] is None
+        # Second to bottom should be empty
+        assert all(cell is None for cell in game.grid[GRID_HEIGHT - 2])
+
     def test_scoring_increases_with_level(self, game: TetrisGame) -> None:
         """Test that scoring scales with level"""
         game.level = 1
