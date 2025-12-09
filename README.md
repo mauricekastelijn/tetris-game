@@ -262,25 +262,77 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🎨 Customization
 
-The game can be easily customized by modifying constants in `tetris.py`:
+The game can be easily customized using the centralized `GameConfig` class. You can create custom configurations by subclassing `GameConfig`:
+
+### Example 1: Easy Mode (Slower Game)
 
 ```python
-# Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 700
+from tetris import TetrisGame, GameConfig
 
-# Grid size
-GRID_WIDTH = 10
-GRID_HEIGHT = 20
+class EasyConfig(GameConfig):
+    INITIAL_FALL_SPEED = 1500  # Slower falling
+    LINES_PER_LEVEL = 15  # More lines per level
+    LINE_SCORES = {1: 150, 2: 450, 3: 750, 4: 1200}  # Higher scores
 
-# Block size
-BLOCK_SIZE = 30
-
-# Colors (RGB tuples)
-CYAN = (0, 255, 255)
-YELLOW = (255, 255, 0)
-# ... and more
+# Create and run the game with easy configuration
+game = TetrisGame(EasyConfig)
+game.run()
 ```
+
+### Example 2: Hard Mode (Faster Game)
+
+```python
+from tetris import TetrisGame, GameConfig
+
+class HardConfig(GameConfig):
+    INITIAL_FALL_SPEED = 500  # Faster falling
+    LEVEL_SPEED_DECREASE = 50  # Speed increases more gradually
+    LINES_PER_LEVEL = 5  # Level up faster
+    MIN_FALL_SPEED = 50  # Even faster at high levels
+
+game = TetrisGame(HardConfig)
+game.run()
+```
+
+### Example 3: Custom Grid Size
+
+```python
+from tetris import TetrisGame, GameConfig
+
+class WideConfig(GameConfig):
+    GRID_WIDTH = 15  # Wider grid
+    GRID_HEIGHT = 25  # Taller grid
+    SCREEN_WIDTH = 1000  # Adjust screen size accordingly
+    GRID_X = 350  # Recenter the grid
+
+game = TetrisGame(WideConfig)
+game.run()
+```
+
+### Example 4: High Scoring Mode
+
+```python
+from tetris import TetrisGame, GameConfig
+
+class HighScoreConfig(GameConfig):
+    LINE_SCORES = {1: 500, 2: 1500, 3: 2500, 4: 4000}  # Much higher scores
+    SOFT_DROP_BONUS = 5  # More points for soft drop
+    HARD_DROP_BONUS = 10  # Even more for hard drop
+
+game = TetrisGame(HighScoreConfig)
+game.run()
+```
+
+### Available Configuration Options
+
+All settings in `GameConfig` can be customized:
+
+- **Display Settings**: `SCREEN_WIDTH`, `SCREEN_HEIGHT`, `BLOCK_SIZE`, `GRID_X`, `GRID_Y`
+- **Grid Settings**: `GRID_WIDTH`, `GRID_HEIGHT`
+- **Timing Settings**: `INITIAL_FALL_SPEED`, `CLEAR_ANIMATION_DURATION`, `LEVEL_SPEED_DECREASE`, `MIN_FALL_SPEED`
+- **Scoring Settings**: `LINE_SCORES`, `SOFT_DROP_BONUS`, `HARD_DROP_BONUS`, `LINES_PER_LEVEL`
+- **Visual Settings**: `BLACK`, `WHITE`, `GRAY`, `DARK_GRAY`, `CYAN`, `YELLOW`, `PURPLE`, `GREEN`, `RED`, `BLUE`, `ORANGE`
+- **Game Pieces**: `SHAPES`, `COLORS`
 
 ## 🚀 Future Enhancements
 
