@@ -34,7 +34,7 @@ assignees: ""
 
 1. Wait for maintainer approval/feedback on this issue
 2. Review [Coding Standards](.github/CODING_STANDARDS.md) - **Critical for AI agents**
-3. Read [Development Guide](../DEVELOPMENT.md) for setup instructions
+3. Read [Development Guide](../doc/DEVELOPMENT.md) for setup instructions
 
 ### Implementation Checklist
 

@@ -6,7 +6,7 @@
 git clone https://github.com/mauricekastelijn/tetris-game.git
 cd tetris-game
 pip install -r requirements.txt
-python tetris.py
+python -m src.tetris
 ```
 
 ## Controls
@@ -27,4 +27,4 @@ python tetris.py
 
 ---
 
-See [README](README.md) for full documentation • [Report issues](https://github.com/mauricekastelijn/tetris-game/issues)
+See [README](../README.md) for full documentation • [Report issues](https://github.com/mauricekastelijn/tetris-game/issues)

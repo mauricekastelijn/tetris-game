@@ -25,7 +25,7 @@ cd tetris-game
 pip install -r requirements.txt
 
 # Run
-python tetris.py
+python -m src.tetris
 
 # Or install as package
 pip install -e .
@@ -34,7 +34,7 @@ tetris
 
 ## 🏗️ Development
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for complete development guide including:
+See [doc/DEVELOPMENT.md](doc/DEVELOPMENT.md) for complete development guide including:
 
 - Environment setup (virtual environment, dependencies)
 - Code quality enforcement (Black, isort, Flake8, Pylint)
@@ -69,7 +69,8 @@ See [`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md) for mandatory c
 Customize game behavior by subclassing `GameConfig`:
 
 ```python
-from tetris import TetrisGame, GameConfig
+from src.tetris import TetrisGame
+from src.config import GameConfig
 
 class EasyConfig(GameConfig):
     INITIAL_FALL_SPEED = 1500  # Slower
@@ -91,7 +92,7 @@ python -m build
 
 # Create executable
 pip install pyinstaller
-pyinstaller --onefile --windowed --name TetrisUltimate tetris.py
+pyinstaller --onefile --windowed --name TetrisUltimate -m src.tetris
 ```
 
 ## 🤝 Contributing
@@ -102,7 +103,7 @@ pyinstaller --onefile --windowed --name TetrisUltimate tetris.py
 4. Ensure tests pass: `pytest tests/ -v`
 5. Submit PR
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [DEVELOPMENT.md](DEVELOPMENT.md) for setup.
+See [CONTRIBUTING.md](doc/CONTRIBUTING.md) for guidelines and [DEVELOPMENT.md](doc/DEVELOPMENT.md) for setup.
 
 ## 📝 License
 
