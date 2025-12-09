@@ -312,8 +312,8 @@ class TestGameLogic:
         """Test clearing non-consecutive lines"""
         # Fill lines 17 and 19 (leave 18 empty)
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 3][x] = COLORS["I"]  # Line 17
-            game.grid[GRID_HEIGHT - 1][x] = COLORS["T"]  # Line 19
+            game.grid[GRID_HEIGHT - 3][x] = COLORS["I"]  # Third from bottom
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["T"]  # Bottom line
 
         # Leave line 18 partially filled
         game.grid[GRID_HEIGHT - 2][0] = COLORS["S"]
