@@ -41,14 +41,10 @@ jobs:
     - name: Check distribution
       run: twine check dist/*
     
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Release and Upload Assets
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Tetris Ultimate Edition ${{ steps.get_version.outputs.VERSION }}
+        name: Tetris Ultimate Edition ${{ steps.get_version.outputs.VERSION }}
         body: |
           ## 🎮 Tetris Ultimate Edition v${{ steps.get_version.outputs.VERSION }}
           
@@ -81,28 +77,11 @@ jobs:
           
           - Python 3.8+
           - pygame 2.6.0+
+        files: |
+          dist/tetris_ultimate-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
+          dist/tetris_ultimate-${{ steps.get_version.outputs.VERSION }}.tar.gz
         draft: false
         prerelease: false
-    
-    - name: Upload wheel to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/tetris_ultimate-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
-        asset_name: tetris_ultimate-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
-        asset_content_type: application/zip
-    
-    - name: Upload source distribution to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/tetris-ultimate-${{ steps.get_version.outputs.VERSION }}.tar.gz
-        asset_name: tetris-ultimate-${{ steps.get_version.outputs.VERSION }}.tar.gz
-        asset_content_type: application/gzip
     
     # Uncomment to publish to PyPI
     # - name: Publish to PyPI
