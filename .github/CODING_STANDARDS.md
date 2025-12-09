@@ -7,9 +7,11 @@
 ### Required Actions Before Task Completion
 
 1. **Always Run Auto-Fix Script**:
+
    ```bash
    python scripts/lint_fix.py --verbose
    ```
+
    This script will automatically fix:
    - Code formatting (Black)
    - Import sorting (isort)
@@ -32,16 +34,19 @@
 ### Code Quality Standards
 
 #### Python Code Formatting
+
 - **Line length**: Maximum 100 characters
 - **Formatter**: Black (automatically enforced)
 - **Import sorting**: isort with Black profile (automatically enforced)
 
 #### Linting Requirements
+
 - **Flake8**: Must pass with project configuration (.flake8)
 - **Pylint**: Must pass with project configuration (.pylintrc)
 - Configuration files define acceptable warnings and disabled checks
 
 #### File Organization
+
 ```
 tetris.py           # Main game code
 tests/              # Test files
@@ -52,6 +57,7 @@ scripts/            # Utility scripts including lint_fix.py
 ### Pre-Commit Hooks
 
 This project uses pre-commit hooks that run automatically on `git commit`. These hooks will:
+
 - Format code with Black
 - Sort imports with isort
 - Check code with Flake8
@@ -86,6 +92,7 @@ When making code changes as an AI coding agent (GitHub Copilot Workspace, etc.):
 1. **Make your code changes** following project patterns and conventions
 
 2. **Before considering the task complete**, run:
+
    ```bash
    python scripts/lint_fix.py --verbose
    ```
@@ -101,6 +108,7 @@ When making code changes as an AI coding agent (GitHub Copilot Workspace, etc.):
    - Repeat until all checks pass
 
 5. **Run tests to ensure nothing broke**:
+
    ```bash
    pytest tests/ -v
    ```
@@ -110,6 +118,7 @@ When making code changes as an AI coding agent (GitHub Copilot Workspace, etc.):
 ### Common Issues and Fixes
 
 #### Unused Imports
+
 ```python
 # Bad - flake8 will report F401
 from typing import List
@@ -120,6 +129,7 @@ from typing import List
 ```
 
 #### Line Too Long
+
 ```python
 # Bad - exceeds 100 characters
 very_long_function_name(argument1, argument2, argument3, argument4, argument5, argument6)
@@ -132,6 +142,7 @@ very_long_function_name(
 ```
 
 #### Import Sorting
+
 ```python
 # Bad - imports not sorted
 import pygame
@@ -173,6 +184,7 @@ pytest tests/ -v --cov=tetris --cov-report=html
 ### VS Code Integration
 
 If working in VS Code, use the provided tasks:
+
 - **Ctrl+Shift+P** → "Tasks: Run Task"
 - Select "Lint: Fix All Issues" to run the auto-fix script
 - Other useful tasks:

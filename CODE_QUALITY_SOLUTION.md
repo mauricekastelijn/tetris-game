@@ -32,13 +32,13 @@ Layer 1: Developer Scripts → lint_fix.py for manual/AI use
 
 ## Tools & Capabilities
 
-| Tool | Auto-Fix | Check | Purpose |
-|------|----------|-------|---------|
-| Black | ✅ | ✅ | Code formatting |
-| isort | ✅ | ✅ | Import sorting |
-| Flake8 | ❌ | ✅ | Style enforcement |
-| Pylint | ❌ | ✅ | Code analysis |
-| pytest | N/A | ✅ | Testing |
+| Tool   | Auto-Fix | Check | Purpose           |
+| ------ | -------- | ----- | ----------------- |
+| Black  | ✅       | ✅    | Code formatting   |
+| isort  | ✅       | ✅    | Import sorting    |
+| Flake8 | ❌       | ✅    | Style enforcement |
+| Pylint | ❌       | ✅    | Code analysis     |
+| pytest | N/A      | ✅    | Testing           |
 
 ## Usage
 

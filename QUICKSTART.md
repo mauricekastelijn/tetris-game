@@ -11,11 +11,11 @@ python tetris.py
 
 ## Controls
 
-| Key | Action | Key | Action |
-|-----|--------|-----|--------|
-| ←/→ | Move | C | Hold piece |
-| ↓ | Soft drop | G | Toggle ghost |
-| ↑ | Rotate | SPACE | Hard drop |
+| Key | Action    | Key   | Action       |
+| --- | --------- | ----- | ------------ |
+| ←/→ | Move      | C     | Hold piece   |
+| ↓   | Soft drop | G     | Toggle ghost |
+| ↑   | Rotate    | SPACE | Hard drop    |
 
 ## Scoring
 
