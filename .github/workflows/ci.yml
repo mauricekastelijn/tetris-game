@@ -38,7 +38,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=tetris --cov-report=xml --cov-report=html
+          pytest tests/ -v --cov --cov-report=xml --cov-report=html
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
@@ -138,4 +138,4 @@ jobs:
         run: safety check --json
 
       - name: Run bandit security scan
-        run: bandit -r tetris.py -f json -ll
+        run: bandit -r tetris.py config.py tetromino.py game_states.py -f json -ll

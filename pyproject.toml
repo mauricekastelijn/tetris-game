@@ -158,7 +158,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["tetris"]
+source = ["tetris", "config", "tetromino", "game_states"]
 omit = [
     "tests/*",
     "setup.py",

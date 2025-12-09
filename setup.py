@@ -21,7 +21,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/tetris-ultimate",
     packages=find_packages(),
-    py_modules=["tetris"],
+    py_modules=["tetris", "config", "tetromino", "game_states"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
