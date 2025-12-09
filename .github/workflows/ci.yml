@@ -143,4 +143,4 @@ jobs:
       run: safety check --json
     
     - name: Run bandit security scan
-      run: bandit -r tetris.py -f json
+      run: bandit -r tetris.py -f json -ll

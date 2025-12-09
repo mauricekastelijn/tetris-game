@@ -9,44 +9,44 @@ from tetris import Tetromino, TetrisGame, SHAPES, COLORS, GRID_WIDTH, GRID_HEIGH
 
 class TestTetromino:
     """Test the Tetromino class"""
-    
+
     def test_tetromino_creation(self):
         """Test creating a tetromino"""
-        piece = Tetromino('I')
-        assert piece.type == 'I'
-        assert piece.color == COLORS['I']
+        piece = Tetromino("I")
+        assert piece.type == "I"
+        assert piece.color == COLORS["I"]
         assert len(piece.shape) > 0
-    
+
     def test_all_shapes_exist(self):
         """Test that all 7 tetromino shapes can be created"""
         for shape_type in SHAPES.keys():
             piece = Tetromino(shape_type)
             assert piece.type == shape_type
             assert piece.color == COLORS[shape_type]
-    
+
     def test_tetromino_rotation_clockwise(self):
         """Test clockwise rotation"""
-        piece = Tetromino('T')
+        piece = Tetromino("T")
         original_shape = [row[:] for row in piece.shape]
         piece.rotate_clockwise()
         # Shape should change after rotation
         assert piece.shape != original_shape
-    
+
     def test_tetromino_rotation_counterclockwise(self):
         """Test counterclockwise rotation"""
-        piece = Tetromino('T')
+        piece = Tetromino("T")
         original_shape = [row[:] for row in piece.shape]
         piece.rotate_counterclockwise()
         # Shape should change after rotation
         assert piece.shape != original_shape
-    
+
     def test_tetromino_copy(self):
         """Test copying a tetromino"""
-        piece = Tetromino('I')
+        piece = Tetromino("I")
         piece.x = 5
         piece.y = 3
         copy = piece.copy()
-        
+
         assert copy.type == piece.type
         assert copy.x == piece.x
         assert copy.y == piece.y
@@ -54,10 +54,10 @@ class TestTetromino:
         # Ensure it's a deep copy
         copy.x = 10
         assert piece.x == 5
-    
+
     def test_get_blocks(self):
         """Test getting block positions"""
-        piece = Tetromino('O')
+        piece = Tetromino("O")
         blocks = piece.get_blocks()
         # O piece should have 4 blocks
         assert len(blocks) == 4
@@ -69,7 +69,7 @@ class TestTetromino:
 
 class TestTetrisGame:
     """Test the TetrisGame class"""
-    
+
     @pytest.fixture
     def game(self):
         """Create a game instance for testing"""
@@ -77,7 +77,7 @@ class TestTetrisGame:
         game = TetrisGame()
         yield game
         pygame.quit()
-    
+
     def test_game_initialization(self, game):
         """Test game initializes correctly"""
         assert game.score == 0
@@ -88,7 +88,7 @@ class TestTetrisGame:
         assert len(game.grid[0]) == GRID_WIDTH
         assert game.current_piece is not None
         assert game.next_piece is not None
-    
+
     def test_spawn_new_piece(self, game):
         """Test spawning a new piece"""
         old_piece = game.current_piece
@@ -96,108 +96,108 @@ class TestTetrisGame:
         # Current piece should change
         assert game.current_piece != old_piece
         assert game.current_piece is not None
-    
+
     def test_is_valid_position(self, game):
         """Test position validation"""
         # Current piece at start should be valid
         assert game.is_valid_position(game.current_piece)
-        
+
         # Test invalid positions (out of bounds)
-        piece = Tetromino('I')
+        piece = Tetromino("I")
         piece.x = -1  # Left boundary
         assert not game.is_valid_position(piece)
-        
+
         piece.x = GRID_WIDTH  # Right boundary
         assert not game.is_valid_position(piece)
-        
+
         piece.x = 0
         piece.y = GRID_HEIGHT  # Bottom boundary
         assert not game.is_valid_position(piece)
-    
+
     def test_move_piece(self, game):
         """Test moving pieces"""
         original_x = game.current_piece.x
         original_y = game.current_piece.y
-        
+
         # Move right
         result = game.move_piece(1, 0)
         if result:
             assert game.current_piece.x == original_x + 1
-        
+
         # Move down
         game.current_piece.x = original_x
         game.current_piece.y = original_y
         result = game.move_piece(0, 1)
         if result:
             assert game.current_piece.y == original_y + 1
-    
+
     def test_rotate_piece(self, game):
         """Test piece rotation"""
         original_shape = [row[:] for row in game.current_piece.shape]
         game.rotate_piece()
         # Shape should change after rotation (unless it's O piece)
-        if game.current_piece.type != 'O':
+        if game.current_piece.type != "O":
             # For most pieces, rotation changes shape
             pass  # Shape might be same if rotation failed due to collision
-    
+
     def test_ghost_piece(self, game):
         """Test ghost piece calculation"""
         ghost = game.get_ghost_piece()
         # Ghost piece should be at same or lower position
         assert ghost.y >= game.current_piece.y
         assert ghost.x == game.current_piece.x
-    
+
     def test_scoring_single_line(self, game):
         """Test scoring for single line clear"""
         # Fill bottom row except one column
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
-        
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+
         initial_score = game.score
         game.clear_lines()
-        
+
         # After animation completes
         if game.clearing_lines:
             game.finish_clearing_animation()
-        
+
         # Score should increase
         assert game.score > initial_score
         assert game.lines_cleared == 1
-    
+
     def test_level_progression(self, game):
         """Test level increases after 10 lines"""
         game.lines_cleared = 9
         game.clear_lines()
         # Level should still be 1
-        
+
         game.lines_cleared = 10
         initial_level = game.level
         # Simulate line clear
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
-        
+
         # Level progression happens in clear_lines
         # After 10 lines, level should be 2
         assert game.level >= initial_level
-    
+
     def test_hold_piece(self, game):
         """Test hold piece functionality"""
         original_type = game.current_piece.type
         game.hold_current_piece()
-        
+
         # Hold piece should be set
         assert game.hold_piece is not None
         assert game.hold_piece.type == original_type
         # Can't hold again immediately
         assert game.can_hold == False
-    
+
     def test_ghost_toggle(self, game):
         """Test ghost piece toggle"""
         original_state = game.show_ghost
         game.show_ghost = not game.show_ghost
         assert game.show_ghost != original_state
-    
+
     def test_reset_game(self, game):
         """Test game reset"""
         # Modify game state
@@ -205,17 +205,17 @@ class TestTetrisGame:
         game.level = 5
         game.lines_cleared = 50
         game.game_over = True
-        
+
         # Reset
         game.reset_game()
-        
+
         # Check reset state
         assert game.score == 0
         assert game.level == 1
         assert game.lines_cleared == 0
         assert game.game_over == False
         assert game.clearing_lines == []
-    
+
     def test_grid_is_empty_initially(self, game):
         """Test that grid starts empty"""
         for row in game.grid:
@@ -225,7 +225,7 @@ class TestTetrisGame:
 
 class TestGameLogic:
     """Test game logic and mechanics"""
-    
+
     @pytest.fixture
     def game(self):
         """Create a game instance for testing"""
@@ -233,78 +233,78 @@ class TestGameLogic:
         game = TetrisGame()
         yield game
         pygame.quit()
-    
+
     def test_line_clear_animation(self, game):
         """Test line clearing animation"""
         # Fill a line
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
-        
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+
         game.clear_lines()
-        
+
         # Animation should be active
         assert len(game.clearing_lines) > 0
         assert game.clear_animation_time >= 0
-    
+
     def test_animation_completion(self, game):
         """Test animation completes and removes lines"""
         # Fill a line
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
-        
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+
         game.clear_lines()
         assert len(game.clearing_lines) == 1
-        
+
         # Complete animation
         game.finish_clearing_animation()
-        
+
         # Lines should be cleared
         assert len(game.clearing_lines) == 0
         # Bottom row should be empty after clearing
         assert all(cell is None for cell in game.grid[GRID_HEIGHT - 1])
-    
+
     def test_multiple_line_clear(self, game):
         """Test clearing multiple lines at once"""
         # Fill multiple lines
         for y in range(GRID_HEIGHT - 2, GRID_HEIGHT):
             for x in range(GRID_WIDTH):
-                game.grid[y][x] = COLORS['I']
-        
+                game.grid[y][x] = COLORS["I"]
+
         game.clear_lines()
-        
+
         # Should detect 2 lines
         assert len(game.clearing_lines) == 2
-    
+
     def test_scoring_increases_with_level(self, game):
         """Test that scoring scales with level"""
         game.level = 1
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
         score_level_1 = game.score
-        
+
         # Reset and test level 2
         game.reset_game()
         game.level = 2
         for x in range(GRID_WIDTH):
-            game.grid[GRID_HEIGHT - 1][x] = COLORS['I']
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
         score_level_2 = game.score
-        
+
         # Level 2 should give more points for same line clear
         assert score_level_2 > score_level_1
 
 
 class TestConstants:
     """Test game constants are valid"""
-    
+
     def test_all_shapes_defined(self):
         """Test all 7 tetromino shapes are defined"""
         assert len(SHAPES) == 7
-        expected_shapes = ['I', 'O', 'T', 'S', 'Z', 'J', 'L']
+        expected_shapes = ["I", "O", "T", "S", "Z", "J", "L"]
         for shape in expected_shapes:
             assert shape in SHAPES
-    
+
     def test_all_colors_defined(self):
         """Test all colors are defined for each shape"""
         assert len(COLORS) == 7
@@ -312,12 +312,12 @@ class TestConstants:
             assert shape in COLORS
             # Each color should be an RGB tuple
             assert len(COLORS[shape]) == 3
-    
+
     def test_grid_dimensions(self):
         """Test grid dimensions are reasonable"""
         assert GRID_WIDTH == 10
         assert GRID_HEIGHT == 20
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
