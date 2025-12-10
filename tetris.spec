@@ -9,14 +9,21 @@ console window hidden for a polished user experience.
 Build with: pyinstaller tetris.spec
 Output: dist/tetris.exe
 """
+import os
+import pygame
 
 block_cipher = None
+
+# Get pygame data directory to include font files
+pygame_data_dir = os.path.dirname(pygame.__file__)
 
 a = Analysis(
     ['src/tetris.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        (os.path.join(pygame_data_dir, 'freesansbold.ttf'), 'pygame'),
+    ],
     hiddenimports=[
         'src',
         'src.config',
