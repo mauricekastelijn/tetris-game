@@ -117,77 +117,6 @@ rm -rf build/ dist/
 python build.py --clean
 ```
 
-## Testing the Executable
-
-### Local Testing
-
-```bash
-# Run the executable
-./dist/tetris.exe
-
-# Or on Windows
-dist\tetris.exe
-```
-
-**Test checklist**:
-- [ ] Executable launches without errors
-- [ ] Game window appears with correct size
-- [ ] All controls work (arrows, space, C, P, G, R, ESC)
-- [ ] Ghost piece displays correctly
-- [ ] Hold piece works
-- [ ] Line clearing animation works
-- [ ] Scoring updates correctly
-- [ ] Game over screen appears
-- [ ] No console window appears (unless built with --console)
-
-### Testing on Clean Machine
-
-For production testing, test on a Windows machine **without Python installed**:
-
-1. Copy `dist/tetris.exe` to the target machine
-2. Run the executable
-3. Verify all functionality works
-4. Check for any missing dependencies or errors
-
-## Troubleshooting
-
-### ModuleNotFoundError: No module named 'src'
-
-**Solution**: The build is missing hidden imports. This is fixed by:
-- Using the `tetris.spec` file (includes all required hidden imports)
-- Or adding `--hidden-import src.modulename` flags
-
-### Executable Size Too Large
-
-The executable will be ~15-25 MB due to Python runtime and Pygame.
-
-To optimize:
-```bash
-# Enable UPX compression (already in tetris.spec)
-pyinstaller tetris.spec  # UPX is enabled by default
-
-# Or install UPX separately for better compression
-# Download from: https://github.com/upx/upx/releases
-```
-
-### Console Window Appears
-
-**Solution**: Make sure `console=False` in `tetris.spec` or use `--windowed` flag.
-
-### Missing DLL Errors
-
-If you get DLL errors on target machine:
-1. Install [Microsoft Visual C++ Redistributable for Visual Studio 2015-2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
-2. Or build on a machine with minimal DLL dependencies
-
-### Game Crashes on Startup
-
-**Debug steps**:
-1. Build with console enabled: `python build.py --console`
-2. Run executable and check console output
-3. Check if Pygame dependencies are included
-4. Verify all hidden imports are in `tetris.spec`
-
 ## Distribution
 
 ### Single File Distribution
@@ -215,27 +144,6 @@ zip -r tetris-ultimate-v1.0.zip tetris-release/
 
 Or use the release workflow in `.github/workflows/` for automated releases.
 
-## Continuous Integration
-
-The repository includes a GitHub Actions workflow that can build executables automatically.
-
-To enable executable builds in CI:
-1. Add PyInstaller to the workflow
-2. Use the build script in the workflow
-3. Upload the executable as an artifact
-
-Example workflow step:
-```yaml
-- name: Build executable
-  run: python build.py --clean
-
-- name: Upload executable
-  uses: actions/upload-artifact@v3
-  with:
-    name: tetris-executable
-    path: dist/tetris.exe
-```
-
 ## Platform-Specific Builds
 
 ### Windows
@@ -257,64 +165,6 @@ pyinstaller tetris.spec
 ```
 
 **Note**: Executables are platform-specific. Build on the target OS or use cross-compilation tools.
-
-## Advanced Configuration
-
-### Including Additional Resources
-
-If you add assets (images, sounds, fonts) in the future:
-
-Edit `tetris.spec`:
-```python
-datas=[
-    ('assets/', 'assets'),
-    ('fonts/', 'fonts'),
-],
-```
-
-### Multi-File Distribution
-
-If you prefer multiple files instead of a single executable:
-
-Edit `tetris.spec` to create a directory bundle:
-```python
-# Change EXE to:
-exe = EXE(
-    pyz,
-    a.scripts,
-    # Don't include these in EXE:
-    # a.binaries,
-    # a.zipfiles,
-    # a.datas,
-    exclude_binaries=True,  # Add this
-    name='tetris',
-    # ... rest of config
-)
-
-# Add COLLECT step:
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    name='tetris',
-)
-```
-
-## Version Information
-
-To add version information to the executable, create a `version.txt` file and reference it in `tetris.spec`.
-
-## Support
-
-If you encounter issues:
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Review PyInstaller documentation: https://pyinstaller.org/
-3. Open an issue on GitHub with:
-   - Build command used
-   - Error messages
-   - Python version
-   - Operating system
 
 ## References
 
