@@ -414,9 +414,7 @@ class TetrisGame:
                     new_grid.append(self.grid[y])
 
             # Add empty rows at the top
-            empty_rows = [
-                [None for _ in range(self.config.GRID_WIDTH)] for _ in range(num_lines)
-            ]
+            empty_rows = [[None for _ in range(self.config.GRID_WIDTH)] for _ in range(num_lines)]
             self.grid = empty_rows + new_grid
 
             self.clearing_lines = []

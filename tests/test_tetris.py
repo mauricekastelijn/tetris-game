@@ -424,7 +424,8 @@ class TestGameLogic:
 
         # Marker should now be at line 11 (dropped by 1 due to bottom line clear)
         # Wait, actually it should stay at 10 since line 0 was cleared
-        # Line 10 drops by 1 (bottom line 19 removed) but shifts up by 1 (line 0 removed adds empty at top)
+        # Line 10 drops by 1 (bottom line 19 removed) but shifts up by 1
+        # (line 0 removed adds empty at top)
         # Net: stays at same relative position but actually moves to 11
         assert game.grid[11][5] == COLORS["S"]
 
