@@ -16,20 +16,8 @@ permissions:
 
 jobs:
   build-executables:
-    name: Build ${{ matrix.os }} Executable
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            artifact-name: tetris-linux
-            executable-name: tetris
-          - os: windows-latest
-            platform: windows
-            artifact-name: tetris-windows
-            executable-name: tetris.exe
+    name: Build Executables (Linux & Windows)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -40,8 +28,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies (Linux)
-        if: matrix.platform == 'linux'
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pygame libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
@@ -52,26 +39,46 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build executable with build.py
-        run: python build.py --clean
-
-      - name: Verify executable exists
-        shell: bash
+      - name: Build Linux executable
         run: |
-          if [ -f "dist/${{ matrix.executable-name }}" ]; then
-            echo "✓ Executable found: dist/${{ matrix.executable-name }}"
-            ls -lh dist/${{ matrix.executable-name }}
+          echo "Building Linux executable..."
+          python build.py --clean
+          mv dist/tetris dist/tetris-linux
+          ls -lh dist/tetris-linux
+
+      - name: Build Windows executable using Wine in Docker
+        run: |
+          echo "Building Windows executable using cdrx/pyinstaller-windows..."
+          
+          # Use cdrx/pyinstaller-windows Docker image which has Wine + Python + PyInstaller pre-configured
+          docker run --rm \
+            -v "$(pwd):/src" \
+            cdrx/pyinstaller-windows:python3-amd64 \
+            "pip install -r requirements.txt && pyinstaller --clean --onefile --windowed --name tetris --hidden-import src --hidden-import src.config --hidden-import src.game_states --hidden-import src.tetromino src/tetris.py"
+          
+          # Verify Windows executable was created
+          if [ -f "dist/windows/tetris.exe" ]; then
+            echo "✓ Windows executable created successfully"
+            ls -lh dist/windows/tetris.exe
+            mv dist/windows/tetris.exe dist/tetris.exe
           else
-            echo "✗ Executable not found: dist/${{ matrix.executable-name }}"
-            ls -la dist/ || echo "dist/ directory not found"
+            echo "✗ Windows executable not found, checking dist/"
+            find dist -type f
             exit 1
           fi
 
-      - name: Upload executable artifact
+      - name: Upload Linux executable artifact
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix.artifact-name }}
-          path: dist/${{ matrix.executable-name }}
+          name: tetris-linux
+          path: dist/tetris-linux
+          retention-days: 30
+
+      - name: Upload Windows executable artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: tetris-windows
+          path: dist/tetris.exe
           retention-days: 30
 
   create-release-assets:
@@ -96,8 +103,8 @@ jobs:
       - name: Create compressed archives
         run: |
           cd artifacts/linux
-          chmod +x tetris
-          tar -czf ../../tetris-linux-x64.tar.gz tetris
+          chmod +x tetris-linux
+          tar -czf ../../tetris-linux-x64.tar.gz tetris-linux
           cd ../windows
           zip ../../tetris-windows-x64.zip tetris.exe
           cd ../..

@@ -150,10 +150,14 @@ The repository includes GitHub Actions workflows for automated builds:
 
 ### Build Executables Workflow
 
-The `.github/workflows/build-executables.yml` workflow automatically builds executables for both Windows and Linux platforms:
+The `.github/workflows/build-executables.yml` workflow automatically builds executables for both Windows and Linux platforms **on a single Ubuntu runner**:
 
 - **Triggered on**: Pushes to main, pull requests, tags (releases)
-- **Platforms**: Windows and Linux
+- **Build Host**: Ubuntu (Linux) runner only
+- **Platforms**: Windows and Linux executables
+- **Method**: 
+  - Linux: Native PyInstaller build
+  - Windows: Cross-compilation using Docker with Wine (cdrx/pyinstaller-windows image)
 - **Artifacts**: Uploaded as GitHub artifacts for 30 days
 - **Releases**: Automatically attached to GitHub releases when tagged
 
@@ -176,7 +180,7 @@ git push origin v1.0.0
 ```
 
 The workflow will automatically:
-1. Build executables for Windows and Linux
+1. Build executables for Windows and Linux on Ubuntu runner
 2. Create compressed archives (`.zip` for Windows, `.tar.gz` for Linux)
 3. Attach them to the GitHub release
 
@@ -200,12 +204,21 @@ python build.py
 # Output: dist/tetris
 ```
 
-**Important**: PyInstaller does not support cross-compilation. You must build on the target platform:
-- Windows executables must be built on Windows
-- Linux executables must be built on Linux
-- macOS executables must be built on macOS
+### Cross-Platform Build (Linux → Windows)
 
-For multi-platform distribution, use the automated GitHub Actions workflow which builds on native runners for each platform.
+To build Windows executables on Linux, use Docker with Wine:
+
+```bash
+# Using the cdrx/pyinstaller-windows Docker image
+docker run --rm \
+  -v "$(pwd):/src" \
+  cdrx/pyinstaller-windows:python3-amd64 \
+  "pip install -r requirements.txt && pyinstaller tetris.spec"
+```
+
+This method is used by the CI/CD workflow to create Windows executables on Ubuntu runners.
+
+**Note**: While PyInstaller typically requires building on the target platform, the GitHub Actions workflow uses Docker with Wine to enable Windows builds on Linux runners. For local development, it's recommended to build on the native platform for best results.
 
 ## References
 
