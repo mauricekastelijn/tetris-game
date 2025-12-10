@@ -85,15 +85,62 @@ game.run()
 
 ## 📦 Distribution
 
+### Building a Python Package
+
 ```bash
 # Build package
 pip install build
 python -m build
-
-# Create executable
-pip install pyinstaller
-pyinstaller --onefile --windowed --name TetrisUltimate -m src.tetris
 ```
+
+### Creating Executables
+
+Build standalone executables for Windows and Linux:
+
+```bash
+# Quick build (recommended)
+python build_exe.py
+
+# Or using PyInstaller directly
+pip install pyinstaller
+pyinstaller tetris.spec
+```
+
+**Output**:
+- Windows: `dist/tetris.exe`
+- Linux/macOS: `dist/tetris`
+
+### Linux Compatibility
+
+The Linux executable requires **GLIBC 2.35 or newer**. Compatible distributions include:
+
+| Distribution | Minimum Version | GLIBC Version |
+|-------------|-----------------|---------------|
+| Ubuntu      | 22.04 LTS       | 2.35          |
+| Ubuntu      | 24.04 LTS       | 2.38          |
+| Debian      | 12 (Bookworm)   | 2.36          |
+| Debian      | 13 (Trixie)     | 2.40+         |
+| Fedora      | 35+             | 2.34+         |
+| RHEL/Rocky/AlmaLinux | 9      | 2.34          |
+| Arch Linux  | Current         | 2.35+         |
+
+**Not supported**: Ubuntu 20.04, Debian 11, RHEL/Rocky 8, or older distributions with GLIBC < 2.35.
+
+If your distribution is not compatible, install from source:
+
+```bash
+git clone https://github.com/mauricekastelijn/tetris-game
+cd tetris-game
+pip install -r requirements.txt
+python -m src.tetris
+```### Pre-built Executables
+
+Download pre-built executables from:
+
+- **GitHub Releases**: Tagged releases include executables for Windows and Linux
+- **GitHub Actions**: Latest builds available in workflow artifacts
+
+**See [PACKAGING.md](PACKAGING.md) for complete build instructions, automated CI/CD builds, and distribution guide.**
 
 ## 🤝 Contributing
 
@@ -116,4 +163,4 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ---
 
-**Made with ❤️ using Python and Pygame**
+Made with ❤️ using Python and Pygame
