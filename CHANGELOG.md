@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.1...v1.0.2) (2025-12-10)
+
+
+### Bug Fixes
+
+* **#35:** Target Ubuntu 22.04 for Linux builds to ensure GLIBC 2.35 compatibility ([b7fbc14](https://github.com/mauricekastelijn/tetris-game/commit/b7fbc14fceae932a1fcdf9a5ab5d0af4e5131dc9))
+* disable console for windows exe ([8da3e98](https://github.com/mauricekastelijn/tetris-game/commit/8da3e989aa1dbb1d550133f7d683826e5545579c))
+
 ## [1.0.1](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.0...v1.0.1) (2025-12-09)
 
 
