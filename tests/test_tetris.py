@@ -422,11 +422,9 @@ class TestGameLogic:
         # Grid height preserved
         assert len(game.grid) == GRID_HEIGHT
 
-        # Marker should now be at line 11 (dropped by 1 due to bottom line clear)
-        # Wait, actually it should stay at 10 since line 0 was cleared
-        # Line 10 drops by 1 (bottom line 19 removed) but shifts up by 1
-        # (line 0 removed adds empty at top)
-        # Net: stays at same relative position but actually moves to 11
+        # After clearing lines 0 and 19, remaining lines shift:
+        # 2 empty rows added at top, then lines 1-18 (excluding 0 and 19)
+        # Original line 10 becomes line 11 (pushed down by 1 empty row)
         assert game.grid[11][5] == COLORS["S"]
 
         # Top 2 rows should be empty
@@ -453,14 +451,13 @@ class TestGameLogic:
         # Grid height preserved
         assert len(game.grid) == GRID_HEIGHT
 
-        # Line 7 should move to 9
-        # Original: 0-4, 6-9, 11-14, 16-19 (17 rows)
-        # New: empty x3, then 0-4 (pos 3-7), 6-9 (pos 8-11), 11-14 (pos 12-15), 16-19 (pos 16-19)
-        # Line 7 -> position 9 (in the 6-9 group at offset 1)
+        # After clearing lines 5, 10, 15:
+        # - 3 empty rows added at top
+        # - Remaining lines: 0-4 (5 lines), 6-9 (4 lines), 11-14 (4 lines), 16-19 (4 lines)
+        # - New positions: empty (0-2), then 0-4 (3-7), 6-9 (8-11), 11-14 (12-15), 16-19 (16-19)
+        # - Line 7 moves to position 9
+        # - Line 12 moves to position 13
         assert game.grid[9][0] == COLORS["L"]
-
-        # Line 12 should move to 13
-        # Line 12 -> position 13 (in the 11-14 group at offset 1)
         assert game.grid[13][1] == COLORS["J"]
 
         # Top 3 rows empty
