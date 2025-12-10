@@ -19,10 +19,3 @@ updates:
       - "dependencies"
       - "python"
     open-pull-requests-limit: 10
-    # Group all patch updates together
-    groups:
-      patch-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "patch"
