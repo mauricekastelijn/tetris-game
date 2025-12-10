@@ -47,6 +47,13 @@ jobs:
           mv dist/tetris dist/tetris-linux
           ls -lh dist/tetris-linux
 
+      - name: Upload Linux executable artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: tetris-linux
+          path: dist/tetris-linux
+          retention-days: 30
+
       - name: Build Windows executable using Wine in Docker
         run: |
           echo "Building Windows executable using cdrx/pyinstaller-windows..."
@@ -69,13 +76,6 @@ jobs:
             find dist -type f || echo "dist/ directory empty or not found"
             exit 1
           fi
-
-      - name: Upload Linux executable artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: tetris-linux
-          path: dist/tetris-linux
-          retention-days: 30
 
       - name: Upload Windows executable artifact
         uses: actions/upload-artifact@v5

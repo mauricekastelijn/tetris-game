@@ -163,7 +163,7 @@ The `.github/workflows/build-executables.yml` workflow automatically builds exec
 
 #### Download Pre-built Executables
 
-1. Go to the [Actions tab](../../actions/workflows/build-executables.yml)
+1. Go to the [Actions tab](https://github.com/mauricekastelijn/tetris-game/actions/workflows/build-executables.yml)
 2. Click on the latest successful workflow run
 3. Download the artifact for your platform:
    - `tetris-linux` - Linux executable
