@@ -93,7 +93,9 @@ pip install build
 python -m build
 ```
 
-### Creating a Windows Executable
+### Creating Executables
+
+Build standalone executables for Windows and Linux:
 
 ```bash
 # Quick build (recommended)
@@ -104,7 +106,17 @@ pip install pyinstaller
 pyinstaller tetris.spec
 ```
 
-**See [PACKAGING.md](PACKAGING.md) for complete build instructions, troubleshooting, and distribution guide.**
+**Output**: 
+- Windows: `dist/tetris.exe`
+- Linux/macOS: `dist/tetris`
+
+### Pre-built Executables
+
+Download pre-built executables from:
+- **GitHub Releases**: Tagged releases include executables for Windows and Linux
+- **GitHub Actions**: Latest builds available in workflow artifacts
+
+**See [PACKAGING.md](PACKAGING.md) for complete build instructions, automated CI/CD builds, and distribution guide.**
 
 ## 🤝 Contributing
 

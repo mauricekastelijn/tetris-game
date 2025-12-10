@@ -1,0 +1,114 @@
+name: Build Executables
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-executables:
+    name: Build ${{ matrix.os }} Executable
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            artifact-name: tetris-linux
+            executable-name: tetris
+          - os: windows-latest
+            platform: windows
+            artifact-name: tetris-windows
+            executable-name: tetris.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pygame libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable with build.py
+        run: python build.py --clean
+
+      - name: Verify executable exists
+        shell: bash
+        run: |
+          if [ -f "dist/${{ matrix.executable-name }}" ]; then
+            echo "✓ Executable found: dist/${{ matrix.executable-name }}"
+            ls -lh dist/${{ matrix.executable-name }}
+          else
+            echo "✗ Executable not found: dist/${{ matrix.executable-name }}"
+            ls -la dist/ || echo "dist/ directory not found"
+            exit 1
+          fi
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: dist/${{ matrix.executable-name }}
+          retention-days: 30
+
+  create-release-assets:
+    name: Create Release Assets
+    runs-on: ubuntu-latest
+    needs: build-executables
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Download Linux executable
+        uses: actions/download-artifact@v5
+        with:
+          name: tetris-linux
+          path: ./artifacts/linux
+
+      - name: Download Windows executable
+        uses: actions/download-artifact@v5
+        with:
+          name: tetris-windows
+          path: ./artifacts/windows
+
+      - name: Create compressed archives
+        run: |
+          cd artifacts/linux
+          chmod +x tetris
+          tar -czf ../../tetris-linux-x64.tar.gz tetris
+          cd ../windows
+          zip ../../tetris-windows-x64.zip tetris.exe
+          cd ../..
+          ls -lh *.tar.gz *.zip
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            tetris-linux-x64.tar.gz
+            tetris-windows-x64.zip
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

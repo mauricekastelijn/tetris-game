@@ -1,6 +1,6 @@
-# Building Windows Executable
+# Building Executables
 
-This guide explains how to create a standalone Windows executable for Tetris Ultimate Edition that can run on machines without Python installed.
+This guide explains how to create standalone executables for Tetris Ultimate Edition that can run on machines without Python installed.
 
 ## Requirements
 
@@ -31,7 +31,9 @@ The script will:
 3. ✓ Verify the output
 4. ✓ Report the executable location and size
 
-**Output**: `dist/tetris.exe`
+**Output**: 
+- Windows: `dist/tetris.exe`
+- Linux/macOS: `dist/tetris`
 
 ### Method 2: Using PyInstaller Directly
 
@@ -102,7 +104,7 @@ After building, you'll see:
 tetris-game/
 ├── build/              # Temporary build files (can be deleted)
 ├── dist/
-│   └── tetris.exe     # Final executable (distribute this)
+│   └── tetris(.exe)   # Final executable (distribute this)
 ├── tetris.spec         # Build configuration
 └── build.py            # Build script
 ```
@@ -121,7 +123,7 @@ python build.py --clean
 
 ### Single File Distribution
 
-The executable in `dist/tetris.exe` is completely standalone:
+The executables are completely standalone:
 - ✓ No Python installation required
 - ✓ All dependencies bundled
 - ✓ No additional files needed
@@ -132,39 +134,78 @@ The executable in `dist/tetris.exe` is completely standalone:
 For professional distribution:
 
 ```bash
-# Create a release folder
-mkdir tetris-release
-cp dist/tetris.exe tetris-release/
-cp README.md tetris-release/
-cp LICENSE tetris-release/
+# Windows
+zip -r tetris-windows-x64.zip dist/tetris.exe
 
-# Create a zip archive
-zip -r tetris-ultimate-v1.0.zip tetris-release/
+# Linux
+tar -czf tetris-linux-x64.tar.gz dist/tetris
+
+# macOS
+tar -czf tetris-macos-x64.tar.gz dist/tetris
 ```
 
-Or use the release workflow in `.github/workflows/` for automated releases.
+## Automated Builds (CI/CD)
+
+The repository includes GitHub Actions workflows for automated builds:
+
+### Build Executables Workflow
+
+The `.github/workflows/build-executables.yml` workflow automatically builds executables for both Windows and Linux platforms:
+
+- **Triggered on**: Pushes to main, pull requests, tags (releases)
+- **Platforms**: Windows and Linux
+- **Artifacts**: Uploaded as GitHub artifacts for 30 days
+- **Releases**: Automatically attached to GitHub releases when tagged
+
+#### Download Pre-built Executables
+
+1. Go to the [Actions tab](../../actions/workflows/build-executables.yml)
+2. Click on the latest successful workflow run
+3. Download the artifact for your platform:
+   - `tetris-linux` - Linux executable
+   - `tetris-windows` - Windows executable
+
+#### Creating a Release
+
+To create a release with executables:
+
+```bash
+# Tag a new version
+git tag -a v1.0.0 -m "Release version 1.0.0"
+git push origin v1.0.0
+```
+
+The workflow will automatically:
+1. Build executables for Windows and Linux
+2. Create compressed archives (`.zip` for Windows, `.tar.gz` for Linux)
+3. Attach them to the GitHub release
 
 ## Platform-Specific Builds
 
-### Windows
+### Building on Windows
 ```bash
 python build.py
 # Output: dist/tetris.exe
 ```
 
-### macOS
+### Building on Linux
 ```bash
-pyinstaller tetris.spec
-# Output: dist/tetris (or tetris.app if configured)
-```
-
-### Linux
-```bash
-pyinstaller tetris.spec
+python build.py
 # Output: dist/tetris
 ```
 
-**Note**: Executables are platform-specific. Build on the target OS or use cross-compilation tools.
+### Building on macOS
+```bash
+python build.py
+# Output: dist/tetris
+```
+
+**Important**: PyInstaller does not support cross-compilation. You must build on the target platform:
+- Windows executables must be built on Windows
+- Linux executables must be built on Linux
+- macOS executables must be built on macOS
+
+For multi-platform distribution, use the automated GitHub Actions workflow which builds on native runners for each platform.
 
 ## References
 
