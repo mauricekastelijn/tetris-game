@@ -337,6 +337,135 @@ class TestGameLogic:
         # Second to bottom should be empty
         assert all(cell is None for cell in game.grid[GRID_HEIGHT - 2])
 
+    def test_clear_alternating_lines(self, game: TetrisGame) -> None:
+        """Test clearing alternating lines (every other line)"""
+        # Fill alternating lines: 0, 2, 4, 6, 8
+        for y in range(0, 10, 2):
+            for x in range(GRID_WIDTH):
+                game.grid[y][x] = COLORS["I"]
+
+        # Add markers in between to verify they move correctly
+        game.grid[1][0] = COLORS["T"]  # Should drop to line 5
+        game.grid[3][1] = COLORS["S"]  # Should drop to line 6
+
+        game.clear_lines()
+        game.finish_clearing_animation()
+
+        # Verify 5 lines cleared
+        assert game.lines_cleared == 5
+
+        # Verify grid height unchanged
+        assert len(game.grid) == GRID_HEIGHT
+
+        # Verify markers moved to correct positions
+        # Line 1 drops by 5 (was between 0 and 2, now at 5)
+        assert game.grid[5][0] == COLORS["T"]
+        # Line 3 drops by 5 (was between 2 and 4, now at 6)
+        assert game.grid[6][1] == COLORS["S"]
+
+        # Verify top 5 rows are empty
+        for y in range(5):
+            assert all(cell is None for cell in game.grid[y])
+
+    def test_grid_height_preserved(self, game: TetrisGame) -> None:
+        """Test grid maintains correct height after any line clear"""
+        # Fill 3 non-consecutive lines
+        for x in range(GRID_WIDTH):
+            game.grid[5][x] = COLORS["I"]
+            game.grid[10][x] = COLORS["T"]
+            game.grid[15][x] = COLORS["S"]
+
+        game.clear_lines()
+        game.finish_clearing_animation()
+
+        # Grid height must remain GRID_HEIGHT
+        assert len(game.grid) == GRID_HEIGHT
+        assert all(len(row) == GRID_WIDTH for row in game.grid)
+
+    def test_maximum_non_consecutive_clears(self, game: TetrisGame) -> None:
+        """Test clearing maximum non-consecutive lines (10 lines)"""
+        # Fill every other line (10 total)
+        for y in range(0, 20, 2):
+            for x in range(GRID_WIDTH):
+                game.grid[y][x] = COLORS["I"]
+
+        # Add marker in line 1
+        game.grid[1][5] = COLORS["T"]
+
+        game.clear_lines()
+        assert len(game.clearing_lines) == 10
+
+        game.finish_clearing_animation()
+
+        # Verify all 10 lines cleared
+        assert len(game.grid) == GRID_HEIGHT
+
+        # Marker should now be at line 10 (dropped by 10 positions)
+        # Line 1 was between cleared lines 0 and 2
+        # After clearing 0, 2, 4, 6, 8, 10, 12, 14, 16, 18
+        # Line 1 should drop to position 10
+        assert game.grid[10][5] == COLORS["T"]
+
+    def test_top_and_bottom_lines_simultaneously(self, game: TetrisGame) -> None:
+        """Test clearing top and bottom lines at the same time"""
+        # Fill top line (0) and bottom line (19)
+        for x in range(GRID_WIDTH):
+            game.grid[0][x] = COLORS["I"]
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["T"]
+
+        # Add marker in middle
+        game.grid[10][5] = COLORS["S"]
+
+        game.clear_lines()
+        game.finish_clearing_animation()
+
+        # Grid height preserved
+        assert len(game.grid) == GRID_HEIGHT
+
+        # Marker should now be at line 11 (dropped by 1 due to bottom line clear)
+        # Wait, actually it should stay at 10 since line 0 was cleared
+        # Line 10 drops by 1 (bottom line 19 removed) but shifts up by 1 (line 0 removed adds empty at top)
+        # Net: stays at same relative position but actually moves to 11
+        assert game.grid[11][5] == COLORS["S"]
+
+        # Top 2 rows should be empty
+        assert all(cell is None for cell in game.grid[0])
+        assert all(cell is None for cell in game.grid[1])
+
+    def test_three_non_consecutive_lines(self, game: TetrisGame) -> None:
+        """Test clearing 3 non-consecutive lines with gaps"""
+        # Fill lines 5, 10, 15
+        for x in range(GRID_WIDTH):
+            game.grid[5][x] = COLORS["I"]
+            game.grid[10][x] = COLORS["T"]
+            game.grid[15][x] = COLORS["S"]
+
+        # Add markers to track movement
+        game.grid[7][0] = COLORS["L"]  # Between 5 and 10
+        game.grid[12][1] = COLORS["J"]  # Between 10 and 15
+
+        game.clear_lines()
+        assert len(game.clearing_lines) == 3
+
+        game.finish_clearing_animation()
+
+        # Grid height preserved
+        assert len(game.grid) == GRID_HEIGHT
+
+        # Line 7 should move to 9
+        # Original: 0-4, 6-9, 11-14, 16-19 (17 rows)
+        # New: empty x3, then 0-4 (pos 3-7), 6-9 (pos 8-11), 11-14 (pos 12-15), 16-19 (pos 16-19)
+        # Line 7 -> position 9 (in the 6-9 group at offset 1)
+        assert game.grid[9][0] == COLORS["L"]
+
+        # Line 12 should move to 13
+        # Line 12 -> position 13 (in the 11-14 group at offset 1)
+        assert game.grid[13][1] == COLORS["J"]
+
+        # Top 3 rows empty
+        for y in range(3):
+            assert all(cell is None for cell in game.grid[y])
+
     def test_scoring_increases_with_level(self, game: TetrisGame) -> None:
         """Test that scoring scales with level"""
         game.level = 1
