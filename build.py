@@ -108,7 +108,11 @@ def build_executable(use_spec=True, show_console=False):
 
 def verify_build():
     """Verify the build output exists."""
-    exe_path = Path("dist/tetris.exe")
+    # Platform-specific executable name
+    if sys.platform == "win32":
+        exe_path = Path("dist/tetris.exe")
+    else:
+        exe_path = Path("dist/tetris")
 
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
