@@ -52,7 +52,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Archive coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-report-${{ matrix.python-version }}
           path: htmlcov/
@@ -104,7 +104,7 @@ jobs:
         run: python -m build
 
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: python-package-distributions
           path: dist/
