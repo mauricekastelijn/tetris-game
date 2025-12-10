@@ -29,7 +29,10 @@ MANIFEST
 
 # PyInstaller
 *.manifest
-*.spec
+# Keep tetris.spec for builds, ignore auto-generated spec files
+# *.spec
+# Uncommenting the line above will exclude all spec files
+# For now, we keep tetris.spec in version control
 
 # Installer logs
 pip-log.txt

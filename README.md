@@ -85,15 +85,26 @@ game.run()
 
 ## 📦 Distribution
 
+### Building a Python Package
+
 ```bash
 # Build package
 pip install build
 python -m build
-
-# Create executable
-pip install pyinstaller
-pyinstaller --onefile --windowed --name TetrisUltimate -m src.tetris
 ```
+
+### Creating a Windows Executable
+
+```bash
+# Quick build (recommended)
+python build.py
+
+# Or using PyInstaller directly
+pip install pyinstaller
+pyinstaller tetris.spec
+```
+
+**See [PACKAGING.md](PACKAGING.md) for complete build instructions, troubleshooting, and distribution guide.**
 
 ## 🤝 Contributing
 
