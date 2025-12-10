@@ -42,6 +42,7 @@ jobs:
       - name: Build Linux executable
         run: |
           echo "Building Linux executable..."
+          # Use build.py for consistent builds
           python build.py --clean
           mv dist/tetris dist/tetris-linux
           ls -lh dist/tetris-linux
@@ -50,20 +51,22 @@ jobs:
         run: |
           echo "Building Windows executable using cdrx/pyinstaller-windows..."
           
+          # Clean any previous builds
+          rm -rf build/ dist/
+          
           # Use cdrx/pyinstaller-windows Docker image which has Wine + Python + PyInstaller pre-configured
           docker run --rm \
             -v "$(pwd):/src" \
             cdrx/pyinstaller-windows:python3-amd64 \
-            "pip install -r requirements.txt && pyinstaller --clean --onefile --windowed --name tetris --hidden-import src --hidden-import src.config --hidden-import src.game_states --hidden-import src.tetromino src/tetris.py"
+            "pip install -r requirements.txt && pyinstaller tetris.spec"
           
-          # Verify Windows executable was created
-          if [ -f "dist/windows/tetris.exe" ]; then
+          # The Docker container creates dist/tetris.exe directly when using tetris.spec
+          if [ -f "dist/tetris.exe" ]; then
             echo "✓ Windows executable created successfully"
-            ls -lh dist/windows/tetris.exe
-            mv dist/windows/tetris.exe dist/tetris.exe
+            ls -lh dist/tetris.exe
           else
             echo "✗ Windows executable not found, checking dist/"
-            find dist -type f
+            find dist -type f || echo "dist/ directory empty or not found"
             exit 1
           fi
 
