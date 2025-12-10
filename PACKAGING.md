@@ -22,7 +22,7 @@ The easiest way to build the executable:
 pip install -r requirements.txt
 
 # Run the build script
-python build.py
+python build_exe.py
 ```
 
 The script will:
@@ -58,20 +58,20 @@ pyinstaller --onefile --windowed --name tetris \
 
 ## Build Options
 
-### Using build.py
+### Using build_exe.py
 
 ```bash
 # Clean build (removes previous build artifacts)
-python build.py --clean
+python build_exe.py --clean
 
 # Build with console window (for debugging)
-python build.py --console
+python build_exe.py --console
 
 # Build without using spec file
-python build.py --no-spec
+python build_exe.py --no-spec
 
 # Combine options
-python build.py --clean --console
+python build_exe.py --clean --console
 ```
 
 ### Editing tetris.spec
@@ -106,7 +106,7 @@ tetris-game/
 ├── dist/
 │   └── tetris(.exe)   # Final executable (distribute this)
 ├── tetris.spec         # Build configuration
-└── build.py            # Build script
+└── build_exe.py            # Build script
 ```
 
 ### Cleaning Up
@@ -116,7 +116,7 @@ tetris-game/
 rm -rf build/ dist/
 
 # Or use the build script
-python build.py --clean
+python build_exe.py --clean
 ```
 
 ## Distribution
@@ -188,19 +188,19 @@ The workflow will automatically:
 
 ### Building on Windows
 ```bash
-python build.py
+python build_exe.py
 # Output: dist/tetris.exe
 ```
 
 ### Building on Linux
 ```bash
-python build.py
+python build_exe.py
 # Output: dist/tetris
 ```
 
 ### Building on macOS
 ```bash
-python build.py
+python build_exe.py
 # Output: dist/tetris
 ```
 

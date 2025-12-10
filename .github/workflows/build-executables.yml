@@ -42,8 +42,8 @@ jobs:
       - name: Build Linux executable
         run: |
           echo "Building Linux executable..."
-          # Use build.py for consistent builds
-          python build.py --clean
+          # Use build_exe.py for consistent builds
+          python build_exe.py --clean
           mv dist/tetris dist/tetris-linux
           ls -lh dist/tetris-linux
 
@@ -57,7 +57,7 @@ jobs:
           # Use cdrx/pyinstaller-windows Docker image which has Wine + Python + PyInstaller pre-configured
           docker run --rm \
             -v "$(pwd):/src" \
-            cdrx/pyinstaller-windows:python3-amd64 \
+            cdrx/pyinstaller-windows:python3 \
             "pip install -r requirements.txt && pyinstaller tetris.spec"
           
           # The Docker container creates dist/tetris.exe directly when using tetris.spec

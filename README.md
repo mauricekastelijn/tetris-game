@@ -99,7 +99,7 @@ Build standalone executables for Windows and Linux:
 
 ```bash
 # Quick build (recommended)
-python build.py
+python build_exe.py
 
 # Or using PyInstaller directly
 pip install pyinstaller
