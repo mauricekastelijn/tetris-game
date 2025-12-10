@@ -26,12 +26,13 @@ def check_dependencies():
     """Check if required build dependencies are installed."""
     try:
         import PyInstaller  # noqa: F401
-
-        print("✓ PyInstaller is installed")
     except ImportError:
         print("✗ PyInstaller not found. Installing...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
         print("✓ PyInstaller installed")
+        return
+
+    print("✓ PyInstaller is installed")
 
 
 def clean_build_artifacts():
@@ -45,8 +46,7 @@ def clean_build_artifacts():
             print(f"  Removing {artifact}/")
             shutil.rmtree(artifact_path)
 
-    # Remove spec file if it exists (we'll use the committed one)
-    # Only remove auto-generated ones, not our custom tetris.spec
+    # Remove auto-generated spec files, keep tetris.spec
     for spec_file in Path(".").glob("*.spec"):
         if spec_file.name != "tetris.spec":
             print(f"  Removing {spec_file}")

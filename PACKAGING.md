@@ -177,7 +177,7 @@ pyinstaller tetris.spec  # UPX is enabled by default
 ### Missing DLL Errors
 
 If you get DLL errors on target machine:
-1. Install [Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+1. Install [Microsoft Visual C++ Redistributable for Visual Studio 2015-2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
 2. Or build on a machine with minimal DLL dependencies
 
 ### Game Crashes on Startup
