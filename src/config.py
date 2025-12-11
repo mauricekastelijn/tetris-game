@@ -62,7 +62,7 @@ class GameConfig:  # pylint: disable=too-few-public-methods
     COMBO_DISPLAY_DURATION = 2000  # milliseconds
     COMBO_BASE_FONT_SIZE = 60  # Base font size for combo text
     COMBO_FONT_SCALE_MAX = 1.8  # Maximum scale factor for animation
-    COMBO_Y_OFFSET = 80  # Vertical offset from grid top
+    COMBO_Y_OFFSET = 30  # Vertical offset from grid top (lowered to avoid clipping)
 
     # Colors
     BLACK = (0, 0, 0)
