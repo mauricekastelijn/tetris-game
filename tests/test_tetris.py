@@ -710,7 +710,7 @@ class TestGameConfig:
         assert GameConfig.COMBO_DISPLAY_DURATION == 2000
         assert GameConfig.COMBO_BASE_FONT_SIZE == 60
         assert GameConfig.COMBO_FONT_SCALE_MAX == 1.8
-        assert GameConfig.COMBO_Y_OFFSET == 80
+        assert GameConfig.COMBO_Y_OFFSET == 30
 
     def test_scoring_with_custom_config(self) -> None:
         """Test that custom config affects scoring"""
