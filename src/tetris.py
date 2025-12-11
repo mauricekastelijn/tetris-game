@@ -319,20 +319,20 @@ class TetrisGame:
             Tuple of (tier_text, color) where tier_text is the display message
             and color is the RGB tuple for rendering.
 
-        Combo tiers:
-            - x2-x3: "COMBO!" (Yellow)
-            - x4-x6: "STREAK!" (Orange)
-            - x7-x9: "BLAZING!" (Red)
-            - x10+: "LEGENDARY!" (Purple)
+        Combo tiers based on combo count:
+            - 2-3: "COMBO!" (Yellow)
+            - 4-6: "STREAK!" (Orange)
+            - 7-9: "BLAZING!" (Red)
+            - 10+: "LEGENDARY!" (Purple)
         """
-        multiplier = self.combo_multiplier
-        if multiplier >= 10:
+        count = self.combo_count
+        if count >= 10:
             return "LEGENDARY!", self.config.PURPLE
-        if multiplier >= 7:
+        if count >= 7:
             return "BLAZING!", self.config.RED
-        if multiplier >= 4:
+        if count >= 4:
             return "STREAK!", self.config.ORANGE
-        if multiplier >= 2:
+        if count >= 2:
             return "COMBO!", self.config.YELLOW
         return "", self.config.WHITE
 

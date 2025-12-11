@@ -827,36 +827,36 @@ class TestComboSystem:
         assert game.combo_multiplier == game.config.MAX_COMBO_MULTIPLIER
 
     def test_combo_tier_combo(self, game: TetrisGame) -> None:
-        """Test COMBO tier (2x-3x)"""
+        """Test COMBO tier (combo 2-3)"""
         game.combo_count = 2
-        game.combo_multiplier = 2.0
+        game.combo_multiplier = 3.0
         tier_text, color = game._get_combo_tier_info()
 
         assert tier_text == "COMBO!"
         assert color == game.config.YELLOW
 
     def test_combo_tier_streak(self, game: TetrisGame) -> None:
-        """Test STREAK tier (4x-6x)"""
+        """Test STREAK tier (combo 4-6)"""
         game.combo_count = 4
-        game.combo_multiplier = 4.0
+        game.combo_multiplier = 5.0
         tier_text, color = game._get_combo_tier_info()
 
         assert tier_text == "STREAK!"
         assert color == game.config.ORANGE
 
     def test_combo_tier_blazing(self, game: TetrisGame) -> None:
-        """Test BLAZING tier (7x-9x)"""
+        """Test BLAZING tier (combo 7-9)"""
         game.combo_count = 7
-        game.combo_multiplier = 7.0
+        game.combo_multiplier = 5.0  # Capped at max
         tier_text, color = game._get_combo_tier_info()
 
         assert tier_text == "BLAZING!"
         assert color == game.config.RED
 
     def test_combo_tier_legendary(self, game: TetrisGame) -> None:
-        """Test LEGENDARY tier (10x+)"""
+        """Test LEGENDARY tier (combo 10+)"""
         game.combo_count = 10
-        game.combo_multiplier = 10.0
+        game.combo_multiplier = 5.0  # Capped at max
         tier_text, color = game._get_combo_tier_info()
 
         assert tier_text == "LEGENDARY!"
