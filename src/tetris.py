@@ -772,9 +772,10 @@ class TetrisGame:
             else:
                 # Shrinking phase (0.7 to 1.0) - gradual shrink to normal
                 scale_progress = (phase - 0.7) / 0.3
-                scale = self.config.COMBO_FONT_SCALE_MAX - (
-                    self.config.COMBO_FONT_SCALE_MAX - 1.0
-                ) * scale_progress
+                scale = (
+                    self.config.COMBO_FONT_SCALE_MAX
+                    - (self.config.COMBO_FONT_SCALE_MAX - 1.0) * scale_progress
+                )
 
             # Fade out alpha (smoother fade in last 30%)
             if progress > 0.3:
