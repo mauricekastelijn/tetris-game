@@ -417,7 +417,7 @@ class TetrisGame:
             # Apply combo multiplier if we have an active combo
             if self.combo_count > 0:
                 # Multiplier: base + count * increment
-                # (e.g., 1.0 + 1*1.0 = 2.0 for second clear)
+                # When combo_count=1 (after first clear), multiplier = 1.0 + 1*1.0 = 2.0
                 self.combo_multiplier = min(
                     self.config.COMBO_MULTIPLIER_BASE
                     + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
