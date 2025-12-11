@@ -31,7 +31,7 @@ The script will:
 3. ✓ Verify the output
 4. ✓ Report the executable location and size
 
-**Output**: 
+**Output**:
 - Windows: `dist/tetris.exe`
 - Linux/macOS: `dist/tetris`
 
@@ -155,7 +155,7 @@ The `.github/workflows/build-executables.yml` workflow automatically builds exec
 - **Triggered on**: Pushes to main, pull requests, tags (releases)
 - **Build Host**: Ubuntu (Linux) runner only
 - **Platforms**: Windows and Linux executables
-- **Method**: 
+- **Method**:
   - Linux: Native PyInstaller build
   - Windows: Cross-compilation using Docker with Wine (cdrx/pyinstaller-windows image)
 - **Artifacts**: Uploaded as GitHub artifacts for 30 days

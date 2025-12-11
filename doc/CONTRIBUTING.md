@@ -60,20 +60,20 @@ All public classes and methods must have comprehensive docstrings:
 ```python
 def move_piece(self, dx: int, dy: int) -> bool:
     """Try to move the current piece by dx, dy.
-    
+
     Attempts to move the piece and only commits the move if
     the new position is valid.
-    
+
     Args:
         dx: Horizontal movement (negative=left, positive=right)
         dy: Vertical movement (negative=up, positive=down)
-        
+
     Returns:
         True if move was successful, False if blocked
-        
+
     Side effects:
         On success, updates self.current_piece.x and self.current_piece.y
-        
+
     Note:
         Coordinates are in grid space (not pixels).
     """
