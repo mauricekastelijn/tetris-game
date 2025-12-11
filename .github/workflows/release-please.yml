@@ -30,27 +30,27 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
-    
+
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
-    
+
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
         pip install build wheel 'setuptools>=45,<77' twine
-    
+
     - name: Build package
       run: python -m build
-    
+
     - name: Check distribution
       run: twine check dist/*
-    
+
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v2
       with:
@@ -58,7 +58,7 @@ jobs:
         files: |
           dist/tetris_ultimate-${{ needs.release-please.outputs.version }}-py3-none-any.whl
           dist/tetris_ultimate-${{ needs.release-please.outputs.version }}.tar.gz
-    
+
     # Uncomment to publish to PyPI
     # - name: Publish to PyPI
     #   env:
@@ -75,26 +75,26 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
-    
+
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
-    
+
     - name: Build executable
       run: |
         pyinstaller --onefile --windowed --name TetrisUltimate src/tetris.py
-    
+
     - name: Upload executable to release
       uses: softprops/action-gh-release@v2
       with:

@@ -32,7 +32,8 @@ repos:
     hooks:
       - id: pylint
         name: Lint with Pylint
-        additional_dependencies: [pygame, pytest]
+        additional_dependencies: [pygame, pytest, .]
+        args: [--recursive=y]
 
   # Built-in hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks

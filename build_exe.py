@@ -21,12 +21,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    import PyInstaller  # pylint: disable=unused-import
+except ImportError:
+    PyInstaller = None  # Will be installed if needed
+
 
 def check_dependencies():
     """Check if required build dependencies are installed."""
-    try:
-        import PyInstaller  # noqa: F401
-    except ImportError:
+    if PyInstaller is None:
         print("✗ PyInstaller not found. Installing...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
         print("✓ PyInstaller installed")
@@ -119,9 +122,9 @@ def verify_build():
         print(f"\n✓ Executable created: {exe_path}")
         print(f"  Size: {size_mb:.2f} MB")
         return True
-    else:
-        print(f"\n✗ Expected executable not found: {exe_path}")
-        return False
+
+    print(f"\n✗ Expected executable not found: {exe_path}")
+    return False
 
 
 def main():

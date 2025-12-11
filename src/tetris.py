@@ -69,6 +69,11 @@ class TetrisGame:
         clear_animation_duration: Total duration of line clear animation
         show_ghost: Whether to display ghost piece
         state: Current game state (PlayingState, PausedState, etc.)
+        combo_count: Number of consecutive line clears
+        combo_multiplier: Current score multiplier based on combo
+        combo_display_time: Remaining time to show combo text (milliseconds)
+        combo_text: Current combo text to display
+        combo_tier: Current combo tier name
 
     Coordinate Systems:
         - Grid space: (0, 0) at top-left grid cell, integer coordinates
@@ -110,6 +115,13 @@ class TetrisGame:
         self.level = 1
         self.lines_cleared = 0
         self.game_over = False
+
+        # Combo system
+        self.combo_count = 0
+        self.combo_multiplier = 1.0
+        self.combo_display_time = 0
+        self.combo_text = ""
+        self.combo_tier = ""
 
         # Timing
         self.fall_time = 0
@@ -300,17 +312,41 @@ class TetrisGame:
             ghost.y += 1
         return ghost
 
+    def _get_combo_tier_info(self) -> Tuple[str, Tuple[int, int, int]]:
+        """Get combo tier text and color based on current combo count.
+
+        Returns:
+            Tuple of (tier_text, color) where tier_text is the display message
+            and color is the RGB tuple for rendering.
+
+        Combo tiers based on combo count:
+            - 2-3: "COMBO!" (Yellow)
+            - 4-6: "STREAK!" (Orange)
+            - 7-9: "BLAZING!" (Red)
+            - 10+: "LEGENDARY!" (Purple)
+        """
+        count = self.combo_count
+        if count >= 10:
+            return "LEGENDARY!", self.config.PURPLE
+        if count >= 7:
+            return "BLAZING!", self.config.RED
+        if count >= 4:
+            return "STREAK!", self.config.ORANGE
+        if count >= 2:
+            return "COMBO!", self.config.YELLOW
+        return "", self.config.WHITE
+
     def lock_piece(self) -> None:
         """Lock the current piece into the grid.
 
         Transfers all blocks of the current piece to the grid,
         then initiates line clearing. If no lines are cleared,
-        spawns the next piece immediately.
+        spawns the next piece immediately and resets the combo.
 
         Side effects:
             - Updates self.grid with current piece's blocks
             - Calls clear_lines() to check for completed lines
-            - If no lines cleared, spawns new piece via spawn_new_piece()
+            - If no lines cleared, resets combo and spawns new piece
 
         Note:
             Blocks above the grid (y < 0) are not added to prevent
@@ -324,6 +360,11 @@ class TetrisGame:
 
         self.clear_lines()
         if not self.clearing_lines:
+            # No lines cleared, reset combo
+            self.combo_count = 0
+            self.combo_multiplier = 1.0
+            self.combo_text = ""
+            self.combo_tier = ""
             self.spawn_new_piece()
 
     def clear_lines(self) -> None:
@@ -331,23 +372,25 @@ class TetrisGame:
 
         Scans the grid for fully occupied rows and initiates the
         line clearing animation and state transition. Updates score
-        based on number of lines cleared and current level. Handles
-        level progression.
+        based on number of lines cleared, current level, and combo multiplier.
+        Handles level progression and combo tracking.
 
         Side effects:
             - Sets self.clearing_lines to list of row indices to clear
             - Resets self.clear_animation_time to 0
             - Increases self.lines_cleared by number of lines found
-            - Updates self.score based on LINE_SCORES and level
+            - Updates self.score based on LINE_SCORES, level, and combo multiplier
+            - Increments combo counter and updates multiplier
+            - Sets combo display text and timer
             - May increase self.level (every LINES_PER_LEVEL lines)
             - May decrease self.fall_speed for higher levels
             - Transitions to LineClearingState if lines found
 
         Scoring:
-            Single: 100 * level
-            Double: 300 * level
-            Triple: 500 * level
-            Tetris: 800 * level
+            Single: 100 * level * combo_multiplier
+            Double: 300 * level * combo_multiplier
+            Triple: 500 * level * combo_multiplier
+            Tetris: 800 * level * combo_multiplier
 
         Note:
             Lines are not actually removed until finish_clearing_animation()
@@ -368,8 +411,37 @@ class TetrisGame:
             num_lines = len(lines_to_clear)
             self.lines_cleared += num_lines
 
-            # Scoring using config
-            self.score += self.config.LINE_SCORES.get(num_lines, 0) * self.level
+            # Calculate base score
+            base_score = self.config.LINE_SCORES.get(num_lines, 0) * self.level
+
+            # Apply combo multiplier if we have an active combo
+            if self.combo_count > 0:
+                # Multiplier: base + count * increment
+                # When combo_count=1 (after first clear), multiplier = 1.0 + 1*1.0 = 2.0
+                self.combo_multiplier = min(
+                    self.config.COMBO_MULTIPLIER_BASE
+                    + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
+                    self.config.MAX_COMBO_MULTIPLIER,
+                )
+                self.score += int(base_score * self.combo_multiplier)
+            else:
+                # First clear has no multiplier
+                self.combo_multiplier = 1.0
+                self.score += base_score
+
+            # Increment combo count
+            self.combo_count += 1
+
+            # Set combo display text (only show if combo is active, i.e., count > 1)
+            if self.combo_count > 1:
+                tier_text, _ = self._get_combo_tier_info()
+                self.combo_tier = tier_text
+                self.combo_text = f"x{self.combo_multiplier:.1f} {tier_text}"
+                self.combo_display_time = self.config.COMBO_DISPLAY_DURATION
+            else:
+                # First clear doesn't show combo text
+                self.combo_text = ""
+                self.combo_tier = ""
 
             # Level up every LINES_PER_LEVEL lines
             new_level = self.lines_cleared // self.config.LINES_PER_LEVEL + 1
@@ -658,6 +730,7 @@ class TetrisGame:
 
         Renders all UI text and preview boxes including:
             - Score, level, and lines cleared
+            - Combo display with animation
             - Next piece preview
             - Hold piece preview
             - Control instructions
@@ -676,6 +749,55 @@ class TetrisGame:
         # Lines
         lines_text = self.font.render(f"Lines: {self.lines_cleared}", True, self.config.WHITE)
         self.screen.blit(lines_text, (50, 200))
+
+        # Combo display with animation
+        if self.combo_display_time > 0 and self.combo_text:
+            # Calculate animation progress (1.0 at start, 0.0 at end)
+            progress = self.combo_display_time / self.config.COMBO_DISPLAY_DURATION
+
+            # Sigmoid-style animation: grow to max, then shrink back
+            # Use a smooth curve that peaks in the middle
+
+            # Map progress (1.0 to 0.0) to animation phase (0.0 to 1.0)
+            phase = 1.0 - progress
+
+            # Create a bell curve effect: grows quickly, holds at peak, then shrinks
+            if phase < 0.3:
+                # Growing phase (0.0 to 0.3) - rapid growth
+                scale_progress = phase / 0.3
+                scale = 1.0 + (self.config.COMBO_FONT_SCALE_MAX - 1.0) * scale_progress
+            elif phase < 0.7:
+                # Peak phase (0.3 to 0.7) - hold at maximum
+                scale = self.config.COMBO_FONT_SCALE_MAX
+            else:
+                # Shrinking phase (0.7 to 1.0) - gradual shrink to normal
+                scale_progress = (phase - 0.7) / 0.3
+                scale = (
+                    self.config.COMBO_FONT_SCALE_MAX
+                    - (self.config.COMBO_FONT_SCALE_MAX - 1.0) * scale_progress
+                )
+
+            # Fade out alpha (smoother fade in last 30%)
+            if progress > 0.3:
+                alpha = int(255 * (progress / 0.7))
+            else:
+                alpha = 255
+
+            # Get tier color
+            _, tier_color = self._get_combo_tier_info()
+
+            # Render combo text with scaling
+            font_size = int(self.config.COMBO_BASE_FONT_SIZE * scale)
+            combo_font = pygame.font.Font(None, font_size)
+            combo_surface = combo_font.render(self.combo_text, True, tier_color)
+            combo_surface.set_alpha(alpha)
+
+            # Position above the grid, centered, with more clearance from top
+            combo_x = self.config.GRID_X + (self.config.GRID_WIDTH * self.config.BLOCK_SIZE) // 2
+            combo_x -= combo_surface.get_width() // 2
+            combo_y = self.config.GRID_Y - self.config.COMBO_Y_OFFSET
+
+            self.screen.blit(combo_surface, (combo_x, combo_y))
 
         # Next piece
         self.draw_piece_preview(self.next_piece, 580, 100, "NEXT")
@@ -704,7 +826,8 @@ class TetrisGame:
         """Reset the game to initial state.
 
         Clears the grid, resets score/level/lines, generates new pieces,
-        and transitions to PlayingState. Used when restarting after game over.
+        resets combo state, and transitions to PlayingState. Used when
+        restarting after game over.
 
         Side effects:
             - Clears self.grid (all cells set to None)
@@ -712,6 +835,7 @@ class TetrisGame:
             - Resets game_over to False
             - Resets fall_speed to initial speed
             - Clears any active line clearing animation
+            - Resets combo state
             - Generates new next_piece
             - Clears hold_piece
             - Transitions to PlayingState
@@ -727,6 +851,11 @@ class TetrisGame:
         self.fall_speed = self.config.INITIAL_FALL_SPEED
         self.clearing_lines = []
         self.clear_animation_time = 0
+        self.combo_count = 0
+        self.combo_multiplier = 1.0
+        self.combo_display_time = 0
+        self.combo_text = ""
+        self.combo_tier = ""
         self.next_piece = self.get_random_piece()
         self.hold_piece = None
         self.can_hold = True
@@ -753,10 +882,14 @@ class TetrisGame:
 
         Side effects:
             If game_over is False, delegates to self.state.update()
-            which may modify game state
+            which may modify game state. Also updates combo display timer.
         """
         if self.game_over:
             return
+
+        # Update combo display timer
+        if self.combo_display_time > 0:
+            self.combo_display_time -= delta_time
 
         self.state.update(delta_time, self)
 
