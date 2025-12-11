@@ -411,24 +411,37 @@ class TetrisGame:
             num_lines = len(lines_to_clear)
             self.lines_cleared += num_lines
 
-            # Increment combo
-            self.combo_count += 1
-            # Multiplier formula: base + count * increment (e.g., 1.0 + 1*1.0 = 2.0 for first combo)
-            self.combo_multiplier = min(
-                self.config.COMBO_MULTIPLIER_BASE
-                + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
-                self.config.MAX_COMBO_MULTIPLIER,
-            )
-
-            # Calculate score with combo multiplier
+            # Calculate base score
             base_score = self.config.LINE_SCORES.get(num_lines, 0) * self.level
-            self.score += int(base_score * self.combo_multiplier)
 
-            # Set combo display text
-            tier_text, _ = self._get_combo_tier_info()
-            self.combo_tier = tier_text
-            self.combo_text = f"x{self.combo_multiplier:.1f} {tier_text}"
-            self.combo_display_time = self.config.COMBO_DISPLAY_DURATION
+            # Apply combo multiplier if we have an active combo
+            if self.combo_count > 0:
+                # Multiplier: base + count * increment
+                # (e.g., 1.0 + 1*1.0 = 2.0 for second clear)
+                self.combo_multiplier = min(
+                    self.config.COMBO_MULTIPLIER_BASE
+                    + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
+                    self.config.MAX_COMBO_MULTIPLIER,
+                )
+                self.score += int(base_score * self.combo_multiplier)
+            else:
+                # First clear has no multiplier
+                self.combo_multiplier = 1.0
+                self.score += base_score
+
+            # Increment combo count
+            self.combo_count += 1
+
+            # Set combo display text (only show if combo is active, i.e., count > 1)
+            if self.combo_count > 1:
+                tier_text, _ = self._get_combo_tier_info()
+                self.combo_tier = tier_text
+                self.combo_text = f"x{self.combo_multiplier:.1f} {tier_text}"
+                self.combo_display_time = self.config.COMBO_DISPLAY_DURATION
+            else:
+                # First clear doesn't show combo text
+                self.combo_text = ""
+                self.combo_tier = ""
 
             # Level up every LINES_PER_LEVEL lines
             new_level = self.lines_cleared // self.config.LINES_PER_LEVEL + 1
@@ -742,25 +755,46 @@ class TetrisGame:
             # Calculate animation progress (1.0 at start, 0.0 at end)
             progress = self.combo_display_time / self.config.COMBO_DISPLAY_DURATION
 
-            # Pulsing scale effect (larger at start, normal at end)
-            scale = 1.0 + 0.5 * progress
+            # Sigmoid-style animation: grow to max, then shrink back
+            # Use a smooth curve that peaks in the middle
 
-            # Fade out alpha
-            alpha = int(255 * progress)
+            # Map progress (1.0 to 0.0) to animation phase (0.0 to 1.0)
+            phase = 1.0 - progress
+
+            # Create a bell curve effect: grows quickly, holds at peak, then shrinks
+            if phase < 0.3:
+                # Growing phase (0.0 to 0.3) - rapid growth
+                scale_progress = phase / 0.3
+                scale = 1.0 + (self.config.COMBO_FONT_SCALE_MAX - 1.0) * scale_progress
+            elif phase < 0.7:
+                # Peak phase (0.3 to 0.7) - hold at maximum
+                scale = self.config.COMBO_FONT_SCALE_MAX
+            else:
+                # Shrinking phase (0.7 to 1.0) - gradual shrink to normal
+                scale_progress = (phase - 0.7) / 0.3
+                scale = self.config.COMBO_FONT_SCALE_MAX - (
+                    self.config.COMBO_FONT_SCALE_MAX - 1.0
+                ) * scale_progress
+
+            # Fade out alpha (smoother fade in last 30%)
+            if progress > 0.3:
+                alpha = int(255 * (progress / 0.7))
+            else:
+                alpha = 255
 
             # Get tier color
             _, tier_color = self._get_combo_tier_info()
 
             # Render combo text with scaling
-            font_size = int(48 * scale)
+            font_size = int(self.config.COMBO_BASE_FONT_SIZE * scale)
             combo_font = pygame.font.Font(None, font_size)
             combo_surface = combo_font.render(self.combo_text, True, tier_color)
             combo_surface.set_alpha(alpha)
 
-            # Position above the grid, centered
+            # Position above the grid, centered, with more clearance from top
             combo_x = self.config.GRID_X + (self.config.GRID_WIDTH * self.config.BLOCK_SIZE) // 2
             combo_x -= combo_surface.get_width() // 2
-            combo_y = self.config.GRID_Y - 60
+            combo_y = self.config.GRID_Y - self.config.COMBO_Y_OFFSET
 
             self.screen.blit(combo_surface, (combo_x, combo_y))
 

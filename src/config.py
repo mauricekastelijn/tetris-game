@@ -60,6 +60,9 @@ class GameConfig:  # pylint: disable=too-few-public-methods
     COMBO_MULTIPLIER_INCREMENT = 1.0  # Increase per combo level
     MAX_COMBO_MULTIPLIER = 5.0  # Cap multiplier at 5x
     COMBO_DISPLAY_DURATION = 2000  # milliseconds
+    COMBO_BASE_FONT_SIZE = 60  # Base font size for combo text
+    COMBO_FONT_SCALE_MAX = 1.8  # Maximum scale factor for animation
+    COMBO_Y_OFFSET = 80  # Vertical offset from grid top
 
     # Colors
     BLACK = (0, 0, 0)

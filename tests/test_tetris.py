@@ -708,6 +708,9 @@ class TestGameConfig:
         assert GameConfig.COMBO_MULTIPLIER_INCREMENT == 1.0
         assert GameConfig.MAX_COMBO_MULTIPLIER == 5.0
         assert GameConfig.COMBO_DISPLAY_DURATION == 2000
+        assert GameConfig.COMBO_BASE_FONT_SIZE == 60
+        assert GameConfig.COMBO_FONT_SCALE_MAX == 1.8
+        assert GameConfig.COMBO_Y_OFFSET == 80
 
     def test_scoring_with_custom_config(self) -> None:
         """Test that custom config affects scoring"""
@@ -728,8 +731,8 @@ class TestGameConfig:
         initial_score = game.score
         game.clear_lines()
 
-        # Score should use custom line scores (with combo multiplier of 2.0 for first clear)
-        expected_score = initial_score + int(HighScoreConfig.LINE_SCORES[1] * game.level * 2.0)
+        # Score should use custom line scores (first clear = no multiplier)
+        expected_score = initial_score + int(HighScoreConfig.LINE_SCORES[1] * game.level * 1.0)
         assert game.score == expected_score
 
         pygame.quit()
@@ -761,9 +764,10 @@ class TestComboSystem:
 
         game.clear_lines()
 
-        # Combo should increment
+        # First clear: combo count increments but multiplier is 1.0 (no bonus yet)
         assert game.combo_count == 1
-        assert game.combo_multiplier == 2.0  # 1.0 + 1 = 2.0x
+        assert game.combo_multiplier == 1.0  # First clear has no multiplier
+        assert game.combo_text == ""  # No text shown on first clear
 
     def test_combo_resets_when_no_lines_cleared(self, game: TetrisGame) -> None:
         """Test combo resets when piece locks without clearing lines"""
@@ -786,35 +790,47 @@ class TestComboSystem:
 
     def test_combo_multiplier_applied_to_score(self, game: TetrisGame) -> None:
         """Test that combo multiplier is applied to score"""
-        # Clear first line (combo = 1, multiplier = 2.0x)
+        # Clear first line (combo = 1, multiplier = 1.0, no bonus)
         for x in range(GRID_WIDTH):
             game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
 
         initial_score = game.score
         game.clear_lines()
+        game.finish_clearing_animation()
 
-        # Score should be: 100 * level * 2.0
-        expected_score = initial_score + int(100 * 1 * 2.0)
+        # First clear: 100 * level * 1.0 (no multiplier)
+        expected_score = initial_score + int(100 * 1 * 1.0)
+        assert game.score == expected_score
+
+        # Clear second line (combo = 2, multiplier = 2.0x)
+        for x in range(GRID_WIDTH):
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+
+        score_before_second = game.score
+        game.clear_lines()
+
+        # Second clear: 100 * level * 2.0
+        expected_score = score_before_second + int(100 * 1 * 2.0)
         assert game.score == expected_score
 
     def test_combo_chain_increases_multiplier(self, game: TetrisGame) -> None:
         """Test that consecutive clears increase multiplier"""
-        # First clear
+        # First clear (no multiplier yet)
         for x in range(GRID_WIDTH):
             game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
         game.finish_clearing_animation()
 
         assert game.combo_count == 1
-        first_multiplier = game.combo_multiplier
+        assert game.combo_multiplier == 1.0
 
-        # Second clear
+        # Second clear (now we get multiplier)
         for x in range(GRID_WIDTH):
             game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
 
         assert game.combo_count == 2
-        assert game.combo_multiplier > first_multiplier
+        assert game.combo_multiplier == 2.0  # Now multiplier kicks in
 
     def test_combo_multiplier_caps_at_max(self, game: TetrisGame) -> None:
         """Test that combo multiplier doesn't exceed maximum"""
@@ -866,9 +882,17 @@ class TestComboSystem:
 
     def test_combo_display_time_set_on_clear(self, game: TetrisGame) -> None:
         """Test that combo display timer is set when lines are cleared"""
+        # First clear - no text yet
         for x in range(GRID_WIDTH):
             game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+        game.clear_lines()
+        assert game.combo_text == ""  # First clear doesn't show text
 
+        game.finish_clearing_animation()
+
+        # Second clear - now text appears
+        for x in range(GRID_WIDTH):
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
 
         assert game.combo_display_time == game.config.COMBO_DISPLAY_DURATION
@@ -883,9 +907,15 @@ class TestComboSystem:
 
     def test_combo_text_format(self, game: TetrisGame) -> None:
         """Test combo text is formatted correctly"""
+        # First clear - no text
         for x in range(GRID_WIDTH):
             game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
+        game.clear_lines()
+        game.finish_clearing_animation()
 
+        # Second clear - text appears
+        for x in range(GRID_WIDTH):
+            game.grid[GRID_HEIGHT - 1][x] = COLORS["I"]
         game.clear_lines()
 
         # Text should be in format "x{multiplier} {TIER}"
