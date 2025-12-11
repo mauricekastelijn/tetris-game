@@ -413,9 +413,10 @@ class TetrisGame:
 
             # Increment combo
             self.combo_count += 1
-            # Multiplier formula: first combo gives 2x, second gives 3x, etc.
+            # Multiplier formula: base + count * increment (e.g., 1.0 + 1*1.0 = 2.0 for first combo)
             self.combo_multiplier = min(
-                1.0 + self.combo_count,
+                self.config.COMBO_MULTIPLIER_BASE
+                + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
                 self.config.MAX_COMBO_MULTIPLIER,
             )
 

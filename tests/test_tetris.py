@@ -704,7 +704,8 @@ class TestGameConfig:
         assert GameConfig.LINES_PER_LEVEL == 10
 
         # Combo settings
-        assert GameConfig.COMBO_MULTIPLIER_INCREMENT == 0.5
+        assert GameConfig.COMBO_MULTIPLIER_BASE == 1.0
+        assert GameConfig.COMBO_MULTIPLIER_INCREMENT == 1.0
         assert GameConfig.MAX_COMBO_MULTIPLIER == 5.0
         assert GameConfig.COMBO_DISPLAY_DURATION == 2000
 
@@ -820,7 +821,8 @@ class TestComboSystem:
         # Set combo to a very high value
         game.combo_count = 20
         game.combo_multiplier = min(
-            1.0 + game.combo_count,
+            game.config.COMBO_MULTIPLIER_BASE
+            + game.combo_count * game.config.COMBO_MULTIPLIER_INCREMENT,
             game.config.MAX_COMBO_MULTIPLIER,
         )
 
