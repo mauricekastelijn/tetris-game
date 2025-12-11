@@ -55,6 +55,11 @@ class GameConfig:  # pylint: disable=too-few-public-methods
     HARD_DROP_BONUS = 2
     LINES_PER_LEVEL = 10
 
+    # Combo system
+    COMBO_MULTIPLIER_INCREMENT = 0.5  # Increase per combo level
+    MAX_COMBO_MULTIPLIER = 5.0  # Cap multiplier at 5x
+    COMBO_DISPLAY_DURATION = 2000  # milliseconds
+
     # Colors
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
