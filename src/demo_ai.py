@@ -9,6 +9,9 @@ from src.tetromino import Tetromino
 if TYPE_CHECKING:
     from src.tetris import TetrisGame
 
+# Type alias for grid representation
+Grid = List[List[Optional[Tuple[int, int, int]]]]
+
 
 class DemoAI:
     """AI player for demo mode that plays optimally.
@@ -34,7 +37,7 @@ class DemoAI:
 
     def evaluate_placement(
         self, piece: Tetromino, x: int, rotation: int
-    ) -> Tuple[float, Optional[List[List[Optional[Tuple[int, int, int]]]]]]:
+    ) -> Tuple[float, Optional[Grid]]:
         """Score a potential piece placement.
 
         Evaluates the resulting grid state after placing a piece at
@@ -125,7 +128,7 @@ class DemoAI:
     def _is_valid_position_in_grid(
         self,
         piece: Tetromino,
-        grid: List[List[Optional[Tuple[int, int, int]]]],
+        grid: Grid,
         offset_x: int = 0,
         offset_y: int = 0,
     ) -> bool:
@@ -158,7 +161,7 @@ class DemoAI:
 
         return True
 
-    def _get_column_heights(self, grid: List[List[Optional[Tuple[int, int, int]]]]) -> List[int]:
+    def _get_column_heights(self, grid: Grid) -> List[int]:
         """Get the height of each column.
 
         Args:
@@ -177,7 +180,7 @@ class DemoAI:
             heights.append(height)
         return heights
 
-    def _count_holes(self, grid: List[List[Optional[Tuple[int, int, int]]]]) -> int:
+    def _count_holes(self, grid: Grid) -> int:
         """Count holes (empty cells with blocks above them).
 
         Args:
@@ -255,7 +258,7 @@ class DemoAI:
                             self.game.current_piece, slide_x, rotation
                         )
                         # Bonus for using advanced technique
-                        slide_score += 10
+                        slide_score += self.game.config.DEMO_SLIDE_BONUS
                         if slide_score > best_score:
                             best_score = slide_score
                             best_x = slide_x
@@ -318,7 +321,7 @@ class DemoAI:
             if self.game.move_piece(0, 1):
                 # Piece moved down successfully, add soft drop score
                 self.game.score += self.game.config.SOFT_DROP_BONUS
-                self.movement_delay = 30  # Fast drop (30ms between moves)
+                self.movement_delay = self.game.config.DEMO_FAST_DROP_DELAY
             else:
                 # Can't move down, piece will lock on next auto-fall
                 # Wait for the piece to lock

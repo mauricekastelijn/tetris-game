@@ -72,6 +72,8 @@ class GameConfig:  # pylint: disable=too-few-public-methods
     DEMO_ROTATION_DELAY = 50  # ms between rotations
     DEMO_MOVE_DELAY_H = 30  # ms between horizontal moves
     DEMO_DROP_DELAY = 100  # ms before hard drop
+    DEMO_FAST_DROP_DELAY = 30  # ms between moves during fast drop
+    DEMO_SLIDE_BONUS = 10  # Bonus score for last-moment insertions
 
     # Colors
     BLACK = (0, 0, 0)

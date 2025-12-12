@@ -14,7 +14,11 @@ from src.tetromino import Tetromino
 
 
 class TestConfig(GameConfig):
-    """Test configuration with demo mode disabled."""
+    """Test configuration with demo mode disabled.
+
+    Demo mode is disabled to ensure predictable test behavior,
+    as tests expect the game to start in PlayingState.
+    """
 
     DEMO_AUTO_START = False
     DEMO_AFTER_GAME_OVER = False

@@ -298,6 +298,9 @@ class DemoState(GameState):
     gameplay. Any key press exits demo mode and starts a new game.
     """
 
+    # Class-level cache for the DemoAI class to avoid repeated imports
+    _demo_ai_class = None  # type: Optional[type]
+
     def __init__(self) -> None:
         """Initialize demo state."""
         super().__init__()
@@ -334,9 +337,14 @@ class DemoState(GameState):
         """
         # Initialize AI if needed
         if self.ai is None:
-            from src.demo_ai import DemoAI
+            # Lazy import with caching to avoid repeated module loading
+            if DemoState._demo_ai_class is None:
+                from src.demo_ai import DemoAI  # pylint: disable=import-outside-toplevel
 
-            self.ai = DemoAI(game)
+                DemoState._demo_ai_class = DemoAI
+
+            # pylint: disable=not-callable
+            self.ai = DemoState._demo_ai_class(game)
 
         # AI decision making
         self.move_timer += delta_time
