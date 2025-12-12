@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 import pygame
 
 from src.config import GameConfig
-from src.game_states import GameOverState, GameState, LineClearingState, PlayingState
+from src.game_states import DemoState, GameOverState, GameState, LineClearingState, PlayingState
 from src.tetromino import Tetromino
 
 # Initialize Pygame
@@ -135,8 +135,11 @@ class TetrisGame:
         # Settings
         self.show_ghost = True
 
-        # State pattern
-        self.state: GameState = PlayingState()
+        # State pattern - start in demo mode if configured
+        if self.config.DEMO_AUTO_START:
+            self.state: GameState = DemoState()
+        else:
+            self.state: GameState = PlayingState()
 
         # Initialize first pieces
         self.next_piece = self.get_random_piece()
