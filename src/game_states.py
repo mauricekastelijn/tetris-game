@@ -2,11 +2,12 @@
 Game state classes implementing the State pattern for different game modes.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import pygame
 
 if TYPE_CHECKING:
+    from src.demo_ai import DemoAI
     from src.tetris import TetrisGame
 
 
@@ -222,6 +223,11 @@ class GameOverState(GameState):
     Shows final score and allows restarting.
     """
 
+    def __init__(self) -> None:
+        """Initialize game over state."""
+        super().__init__()
+        self.game_over_time = 0
+
     def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
         """Handle input in game over state.
 
@@ -239,12 +245,19 @@ class GameOverState(GameState):
             game.state = PlayingState()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """No updates in game over state.
+        """Update game over state.
+
+        Tracks time and transitions to demo mode after delay if configured.
 
         Args:
-            delta_time: Time elapsed in milliseconds (ignored)
-            game: The TetrisGame instance (ignored)
+            delta_time: Time elapsed in milliseconds
+            game: The TetrisGame instance
         """
+        if game.config.DEMO_AFTER_GAME_OVER:
+            self.game_over_time += delta_time
+            if self.game_over_time >= game.config.DEMO_GAME_OVER_DELAY:
+                game.reset_game()
+                game.state = DemoState()
 
     def draw(self, game: "TetrisGame") -> None:
         """Draw game over overlay.
@@ -275,4 +288,95 @@ class GameOverState(GameState):
         game.screen.blit(
             restart_text,
             (game.config.SCREEN_WIDTH // 2 - restart_text.get_width() // 2, 400),
+        )
+
+
+class DemoState(GameState):
+    """Demo mode with AI-controlled gameplay.
+
+    In this state, the AI plays the game automatically to demonstrate
+    gameplay. Any key press exits demo mode and starts a new game.
+    """
+
+    def __init__(self) -> None:
+        """Initialize demo state."""
+        super().__init__()
+        self.ai: Optional["DemoAI"] = None
+        self.move_timer = 0
+
+    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
+        """Handle input during demo mode.
+
+        Any key exits demo mode and starts a new game.
+
+        Args:
+            event: Pygame KEYDOWN event
+            game: The TetrisGame instance to manipulate
+
+        Key bindings:
+            SPACE: Exit demo and start new game
+            ESC: Exit demo and start new game
+            Any other key: Exit demo and start new game
+        """
+        # Any key exits demo mode
+        game.reset_game()
+        game.state = PlayingState()
+
+    def update(self, delta_time: int, game: "TetrisGame") -> None:
+        """Update demo mode.
+
+        AI makes moves at human-like pace. Also handles automatic
+        piece falling like normal gameplay.
+
+        Args:
+            delta_time: Time elapsed since last update in milliseconds
+            game: The TetrisGame instance to update
+        """
+        # Initialize AI if needed
+        if self.ai is None:
+            from src.demo_ai import DemoAI
+
+            self.ai = DemoAI(game)
+
+        # AI decision making
+        self.move_timer += delta_time
+        ai_delay = self.ai.get_movement_delay()
+
+        if self.move_timer >= ai_delay:
+            self.move_timer = 0
+            self.ai.make_next_move()
+
+        # Auto-fall (same as PlayingState)
+        game.fall_time += delta_time
+        if game.fall_time >= game.fall_speed:
+            game.fall_time = 0
+            if not game.move_piece(0, 1):
+                game.lock_piece()
+
+    def draw(self, game: "TetrisGame") -> None:
+        """Draw demo mode overlay.
+
+        Renders a semi-transparent overlay at the top with "DEMO MODE"
+        text and instructions to start playing.
+
+        Args:
+            game: The TetrisGame instance providing screen and rendering context
+        """
+        # Semi-transparent overlay at top
+        overlay = pygame.Surface((game.config.SCREEN_WIDTH, 100))
+        overlay.set_alpha(200)
+        overlay.fill(game.config.BLACK)
+        game.screen.blit(overlay, (0, 0))
+
+        # Demo mode text
+        demo_text = game.font.render("DEMO MODE", True, game.config.CYAN)
+        prompt_text = game.small_font.render("Press any key to play", True, game.config.WHITE)
+
+        game.screen.blit(
+            demo_text,
+            (game.config.SCREEN_WIDTH // 2 - demo_text.get_width() // 2, 20),
+        )
+        game.screen.blit(
+            prompt_text,
+            (game.config.SCREEN_WIDTH // 2 - prompt_text.get_width() // 2, 65),
         )
