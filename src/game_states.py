@@ -55,7 +55,7 @@ class PlayingState(GameState):
         """Handle input during active gameplay.
 
         Processes keyboard input for piece movement, rotation, dropping,
-        holding, ghost piece toggle, and pause.
+        holding, ghost piece toggle, pause, and demo mode.
 
         Args:
             event: Pygame KEYDOWN event
@@ -69,6 +69,7 @@ class PlayingState(GameState):
             C: Hold current piece
             G: Toggle ghost piece visibility
             P: Pause game
+            D: Enter demo mode
         """
         if event.key == pygame.K_LEFT:
             game.move_piece(-1, 0)
@@ -87,6 +88,10 @@ class PlayingState(GameState):
             game.show_ghost = not game.show_ghost
         elif event.key == pygame.K_p:
             game.state = PausedState()
+        elif event.key == pygame.K_d:
+            # Enter demo mode
+            game.reset_game()
+            game.state = DemoState()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
@@ -178,6 +183,16 @@ class LineClearingState(GameState):
     processed during the animation.
     """
 
+    def __init__(self, previous_state: Optional[GameState] = None) -> None:
+        """Initialize line clearing state.
+
+        Args:
+            previous_state: The state to return to after animation completes.
+                           Defaults to PlayingState if not specified.
+        """
+        super().__init__()
+        self.previous_state = previous_state
+
     def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
         """No input handling during line clearing.
 
@@ -189,7 +204,7 @@ class LineClearingState(GameState):
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update line clearing animation.
 
-        Tracks animation progress and transitions back to playing
+        Tracks animation progress and transitions back to the previous
         state when animation completes.
 
         Args:
@@ -198,12 +213,23 @@ class LineClearingState(GameState):
 
         Side effects:
             When animation completes, calls finish_clearing_animation()
-            and transitions to PlayingState
+            and transitions to previous state or PlayingState
         """
         game.clear_animation_time += delta_time
         if game.clear_animation_time >= game.clear_animation_duration:
             game.finish_clearing_animation()
-            game.state = PlayingState()
+            # Return to appropriate state
+            if self.previous_state is not None:
+                # Create a new instance of the same state type
+                if isinstance(self.previous_state, DemoState):
+                    game.state = DemoState()
+                elif isinstance(self.previous_state, PlayingState):
+                    game.state = PlayingState()
+                else:
+                    # Fallback to the stored instance for other states
+                    game.state = self.previous_state
+            else:
+                game.state = PlayingState()
 
     def draw(self, game: "TetrisGame") -> None:
         """No additional drawing needed - animation handled in draw_grid.
@@ -298,9 +324,6 @@ class DemoState(GameState):
     gameplay. Any key press exits demo mode and starts a new game.
     """
 
-    # Class-level cache for the DemoAI class to avoid repeated imports
-    _demo_ai_class = None  # type: Optional[type]
-
     def __init__(self) -> None:
         """Initialize demo state."""
         super().__init__()
@@ -337,14 +360,10 @@ class DemoState(GameState):
         """
         # Initialize AI if needed
         if self.ai is None:
-            # Lazy import with caching to avoid repeated module loading
-            if DemoState._demo_ai_class is None:
-                from src.demo_ai import DemoAI  # pylint: disable=import-outside-toplevel
+            # Import here to avoid circular dependencies
+            from src.demo_ai import DemoAI  # pylint: disable=import-outside-toplevel
 
-                DemoState._demo_ai_class = DemoAI
-
-            # pylint: disable=not-callable
-            self.ai = DemoState._demo_ai_class(game)
+            self.ai = DemoAI(game)
 
         # AI decision making
         self.move_timer += delta_time

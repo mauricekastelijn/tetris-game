@@ -1014,30 +1014,70 @@ class TestDemoMode:
         from src.demo_ai import DemoAI
 
         ai = DemoAI(game_no_demo)
-        x, rotation = ai.find_best_move()
+        x, rotation, use_hold = ai.find_best_move()
 
         # Should return valid position
         assert 0 <= x < game_no_demo.config.GRID_WIDTH
         assert 0 <= rotation < 4
+        assert isinstance(use_hold, bool)
 
     def test_demo_ai_prefers_line_clears(self, game_no_demo: TetrisGame) -> None:
         """Test demo AI prefers moves that clear lines"""
         from src.demo_ai import DemoAI
 
-        # Fill bottom row except one position
+        # Fill bottom row except one position to create line clear opportunity
         for x in range(game_no_demo.config.GRID_WIDTH - 1):
             game_no_demo.grid[game_no_demo.config.GRID_HEIGHT - 1][x] = COLORS["I"]
 
-        # Create an I piece and evaluate
+        # Create an I piece (horizontal orientation can complete the line)
         game_no_demo.current_piece = Tetromino("I", game_no_demo.config)
         ai = DemoAI(game_no_demo)
 
-        # AI should prefer completing the line
-        x, rotation = ai.find_best_move()
+        # Evaluate the best move
+        x, rotation, use_hold = ai.find_best_move()
 
-        # After placement, should be able to clear a line
-        # This is a heuristic test - AI should choose wisely
-        assert x >= 0  # Just verify it returns a valid move
+        # Verify the AI chooses a position that can complete the line
+        # The I piece in horizontal orientation (rotation 0 or 2) should be placed
+        # at the gap to complete the line
+        assert 0 <= x < game_no_demo.config.GRID_WIDTH, "X position must be within grid"
+        assert 0 <= rotation < 4, "Rotation must be 0-3"
+
+        # Simulate the placement to verify it clears a line
+        test_piece = game_no_demo.current_piece.copy()
+        for _ in range(rotation):
+            test_piece.rotate_clockwise()
+        test_piece.x = x
+
+        # Drop to landing position
+        test_piece.y = 0
+        while ai._is_valid_position_in_grid(test_piece, game_no_demo.grid, 0, 1):
+            test_piece.y += 1
+
+        # Place piece and check if it completes the line
+        test_grid = [row[:] for row in game_no_demo.grid]
+        for block_x, block_y in test_piece.get_blocks():
+            if 0 <= block_y < game_no_demo.config.GRID_HEIGHT:
+                test_grid[block_y][block_x] = test_piece.color
+
+        # Verify at least one line is complete
+        lines_complete = sum(1 for row in test_grid if all(cell is not None for cell in row))
+        assert lines_complete > 0, "AI should choose placement that clears at least one line"
+
+    def test_demo_ai_considers_hold(self, game_no_demo: TetrisGame) -> None:
+        """Test demo AI considers using hold piece"""
+        from src.demo_ai import DemoAI
+
+        # Set up a scenario where hold might be beneficial
+        game_no_demo.hold_piece = Tetromino("I", game_no_demo.config)
+        game_no_demo.can_hold = True
+
+        ai = DemoAI(game_no_demo)
+        x, rotation, use_hold = ai.find_best_move()
+
+        # Should consider hold (return value could be True or False depending on evaluation)
+        assert isinstance(use_hold, bool)
+        assert 0 <= x < game_no_demo.config.GRID_WIDTH
+        assert 0 <= rotation < 4
 
     def test_game_over_transitions_to_demo(self) -> None:
         """Test game over transitions to demo mode after delay"""

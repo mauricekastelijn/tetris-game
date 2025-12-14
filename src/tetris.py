@@ -456,8 +456,8 @@ class TetrisGame:
                     - (self.level - 1) * self.config.LEVEL_SPEED_DECREASE,
                 )
 
-            # Transition to line clearing state
-            self.state = LineClearingState()
+            # Transition to line clearing state, preserving current state
+            self.state = LineClearingState(previous_state=self.state)
 
     def finish_clearing_animation(self) -> None:
         """Complete the line clearing animation and remove lines from grid.
@@ -818,6 +818,7 @@ class TetrisGame:
             "C: Hold",
             "P: Pause",
             "G: Toggle Ghost",
+            "D: Demo Mode",
             "ESC: Quit",
         ]
 

@@ -30,7 +30,8 @@ class DemoAI:
         self.game = game
         self.target_x: Optional[int] = None
         self.target_rotation: Optional[int] = None
-        self.move_phase = "planning"  # planning, rotating, moving, dropping, waiting
+        self.target_use_hold = False
+        self.move_phase = "planning"  # planning, holding, rotating, moving, dropping, waiting
         self.rotation_count = 0
         self.movement_delay = 0
         self.current_piece_id: Optional[int] = None  # Track which piece we're working on
@@ -62,6 +63,11 @@ class DemoAI:
             -500: Creating holes (unreachable gaps)
             -50: Bumpiness (height variance)
             +50: Completed line progress
+
+        Note:
+            Grid is only copied once per evaluation. For performance-critical
+            applications, consider using a more efficient grid representation
+            (e.g., bitboard), but for Tetris AI at 60 FPS, this is sufficient.
         """
         # Create a copy of the piece to simulate
         test_piece = piece.copy()
@@ -82,21 +88,34 @@ class DemoAI:
         if not self._is_valid_position_in_grid(test_piece, self.game.grid):
             return (float("-inf"), None)
 
-        # Create simulated grid with piece placed
+        # Calculate score directly on a temporary grid state
+        # We use shallow copy of rows since we only modify specific cells
+        # This is more memory-efficient than deep copying the entire structure
         simulated_grid = [row[:] for row in self.game.grid]
         for block_x, block_y in test_piece.get_blocks():
             if 0 <= block_y < self.game.config.GRID_HEIGHT:
                 simulated_grid[block_y][block_x] = test_piece.color
 
-        # Calculate score
+        # Calculate score based on grid state
+        score = self._evaluate_grid_state(simulated_grid)
+
+        return (score, simulated_grid)
+
+    def _evaluate_grid_state(self, grid: Grid) -> float:
+        """Evaluate the quality of a grid state.
+
+        Args:
+            grid: The grid state to evaluate
+
+        Returns:
+            Score representing grid quality (higher is better)
+        """
         score = 0.0
 
         # Check for line clears
         lines_cleared = 0
         for y in range(self.game.config.GRID_HEIGHT):
-            if all(
-                simulated_grid[y][col] is not None for col in range(self.game.config.GRID_WIDTH)
-            ):
+            if all(grid[y][col] is not None for col in range(self.game.config.GRID_WIDTH)):
                 lines_cleared += 1
 
         # Reward line clears heavily
@@ -104,8 +123,8 @@ class DemoAI:
         score += line_clear_scores.get(lines_cleared, 0)
 
         # Calculate grid metrics
-        heights = self._get_column_heights(simulated_grid)
-        holes = self._count_holes(simulated_grid)
+        heights = self._get_column_heights(grid)
+        holes = self._count_holes(grid)
         bumpiness = self._calculate_bumpiness(heights)
 
         # Penalize aggregate height
@@ -119,11 +138,11 @@ class DemoAI:
 
         # Bonus for near-complete lines
         for y in range(self.game.config.GRID_HEIGHT):
-            filled = sum(1 for cell in simulated_grid[y] if cell is not None)
+            filled = sum(1 for cell in grid[y] if cell is not None)
             if filled >= self.game.config.GRID_WIDTH - 1:
                 score += 50
 
-        return (score, simulated_grid)
+        return score
 
     def _is_valid_position_in_grid(
         self,
@@ -213,35 +232,88 @@ class DemoAI:
             bumpiness += abs(heights[i] - heights[i + 1])
         return bumpiness
 
-    def find_best_move(self) -> Tuple[int, int]:
+    def find_best_move(self) -> Tuple[int, int, bool]:
         """Find optimal position and rotation for current piece.
 
         Evaluates all possible placements (all rotations at all x positions)
         and returns the best one. Also considers last-moment horizontal
         insertions where a piece can slide into a gap that can't be reached
-        by vertical drop alone.
+        by vertical drop alone. Additionally evaluates whether using the hold
+        piece would result in a better placement.
 
         Returns:
-            Tuple of (x_position, num_rotations) for best placement
+            Tuple of (x_position, num_rotations, use_hold) for best placement
         """
         if self.game.current_piece is None:
-            return (self.game.config.GRID_WIDTH // 2, 0)
+            return (self.game.config.GRID_WIDTH // 2, 0, False)
 
         best_score = float("-inf")
         best_x = self.game.current_piece.x
+        best_rotation = 0
+        best_use_hold = False
+
+        # Evaluate current piece
+        best_score, best_x, best_rotation = self._evaluate_piece_placements(self.game.current_piece)
+
+        # Consider using hold piece if available
+        if self.game.can_hold:
+            # Determine what piece we'd get if we use hold
+            if self.game.hold_piece is not None:
+                # We'd swap with the hold piece
+                hold_score, hold_x, hold_rotation = self._evaluate_piece_placements(
+                    self.game.hold_piece
+                )
+                # Give slight bonus to encourage hold usage for strategic play
+                hold_score += 20
+                if hold_score > best_score:
+                    best_score = hold_score
+                    best_x = hold_x
+                    best_rotation = hold_rotation
+                    best_use_hold = True
+            else:
+                # We'd get the next piece, which might be better
+                if self.game.next_piece is not None:
+                    next_score, next_x, next_rotation = self._evaluate_piece_placements(
+                        self.game.next_piece
+                    )
+                    # Give bonus for strategic hold usage
+                    next_score += 20
+                    if next_score > best_score:
+                        best_score = next_score
+                        best_x = next_x
+                        best_rotation = next_rotation
+                        best_use_hold = True
+
+        return (best_x, best_rotation, best_use_hold)
+
+    def _evaluate_piece_placements(self, piece: Optional[Tetromino]) -> Tuple[float, int, int]:
+        """Evaluate all placements for a given piece.
+
+        Args:
+            piece: The piece to evaluate (None returns default values)
+
+        Returns:
+            Tuple of (best_score, best_x, best_rotation)
+        """
+        if piece is None:
+            # Return safe defaults if piece is None
+            return (float("-inf"), self.game.config.GRID_WIDTH // 2, 0)
+
+        best_score = float("-inf")
+        best_x = piece.x
         best_rotation = 0
 
         # Try all rotations
         for rotation in range(4):
             # Create test piece
-            test_piece = self.game.current_piece.copy()
+            test_piece = piece.copy()
             for _ in range(rotation):
                 test_piece.rotate_clockwise()
 
             # Try all x positions
             for x in range(self.game.config.GRID_WIDTH):
                 # Standard drop evaluation
-                score, _ = self.evaluate_placement(self.game.current_piece, x, rotation)
+                score, _ = self.evaluate_placement(piece, x, rotation)
 
                 if score > best_score:
                     best_score = score
@@ -254,9 +326,7 @@ class DemoAI:
                 for slide_offset in [-1, 1, -2, 2]:
                     slide_x = x + slide_offset
                     if 0 <= slide_x < self.game.config.GRID_WIDTH:
-                        slide_score, _ = self.evaluate_placement(
-                            self.game.current_piece, slide_x, rotation
-                        )
+                        slide_score, _ = self.evaluate_placement(piece, slide_x, rotation)
                         # Bonus for using advanced technique
                         slide_score += self.game.config.DEMO_SLIDE_BONUS
                         if slide_score > best_score:
@@ -264,7 +334,7 @@ class DemoAI:
                             best_x = slide_x
                             best_rotation = rotation
 
-        return (best_x, best_rotation)
+        return (best_score, best_x, best_rotation)
 
     def make_next_move(self) -> None:
         """Execute the next move in the current plan.
@@ -287,10 +357,24 @@ class DemoAI:
 
         # Planning phase: decide what to do
         if self.move_phase == "planning":
-            self.target_x, self.target_rotation = self.find_best_move()
+            self.target_x, self.target_rotation, self.target_use_hold = self.find_best_move()
             self.rotation_count = 0
-            self.move_phase = "rotating"
-            self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
+
+            # If we should use hold, do that first
+            if self.target_use_hold:
+                self.move_phase = "holding"
+                self.movement_delay = self.game.config.DEMO_MOVE_DELAY
+            else:
+                self.move_phase = "rotating"
+                self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
+
+        # Holding phase: use the hold feature
+        elif self.move_phase == "holding":
+            self.game.hold_current_piece()
+            # After holding, we need to re-plan for the new piece
+            self.move_phase = "planning"
+            self.current_piece_id = id(self.game.current_piece) if self.game.current_piece else None
+            self.movement_delay = self.game.config.DEMO_MOVE_DELAY
 
         # Rotating phase: rotate piece to target rotation
         elif self.move_phase == "rotating":
