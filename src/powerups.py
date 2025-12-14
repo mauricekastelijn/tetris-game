@@ -238,6 +238,9 @@ class PowerUpManager:
     def get_powerup_at(self, x: int, y: int) -> Optional[str]:
         """Get power-up type at a specific grid location.
 
+        Uses linear search which is acceptable given the small number
+        of power-up blocks typically present (<20 in a standard game).
+
         Args:
             x: Grid x coordinate
             y: Grid y coordinate
