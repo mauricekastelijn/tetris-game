@@ -430,7 +430,7 @@ class ConfigMenuState(GameState):
         self.selected_option = 0
         self.options = ["difficulty", "charged_blocks", "hold_blocks", "back"]
         self.difficulty_levels = ["easy", "medium", "hard", "expert"]
-        
+
         # Get current difficulty based on fall speed
         self.current_difficulty = "medium"  # default
         for difficulty, settings in GameConfig.DIFFICULTY_SETTINGS.items():
@@ -455,7 +455,7 @@ class ConfigMenuState(GameState):
             self.selected_option = (self.selected_option - 1) % len(self.options)
         elif event.key == pygame.K_DOWN:
             self.selected_option = (self.selected_option + 1) % len(self.options)
-        elif event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+        elif event.key in (pygame.K_LEFT, pygame.K_RIGHT):
             self._change_option(event.key == pygame.K_RIGHT, game)
         elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
             if self.options[self.selected_option] == "back":
@@ -472,7 +472,7 @@ class ConfigMenuState(GameState):
             game: The TetrisGame instance
         """
         option = self.options[self.selected_option]
-        
+
         if option == "difficulty":
             current_idx = self.difficulty_levels.index(self.current_difficulty)
             if increase:
@@ -496,9 +496,11 @@ class ConfigMenuState(GameState):
         game.config.INITIAL_FALL_SPEED = settings["initial_speed"]
         game.config.LEVEL_SPEED_DECREASE = settings["speed_decrease"]
         game.config.MIN_FALL_SPEED = settings["min_speed"]
-        
+
         # Recalculate fall speed for current level
-        new_speed = game.config.INITIAL_FALL_SPEED - (game.level - 1) * game.config.LEVEL_SPEED_DECREASE
+        new_speed = (
+            game.config.INITIAL_FALL_SPEED - (game.level - 1) * game.config.LEVEL_SPEED_DECREASE
+        )
         game.fall_speed = max(new_speed, game.config.MIN_FALL_SPEED)
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
@@ -587,11 +589,14 @@ class ConfigMenuState(GameState):
             "Press ENTER to apply and return",
             "Press ESC to cancel",
         ]
-        
+
         y_instructions = y_start + y_spacing * 5
         for i, instruction in enumerate(instructions):
             instruction_text = game.small_font.render(instruction, True, game.config.GRAY)
             game.screen.blit(
                 instruction_text,
-                (game.config.SCREEN_WIDTH // 2 - instruction_text.get_width() // 2, y_instructions + i * 25),
+                (
+                    game.config.SCREEN_WIDTH // 2 - instruction_text.get_width() // 2,
+                    y_instructions + i * 25,
+                ),
             )

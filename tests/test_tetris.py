@@ -1147,22 +1147,22 @@ class TestConfigMenu:
     def test_difficulty_change(self, game: TetrisGame) -> None:
         """Test changing difficulty level"""
         config_state = ConfigMenuState()
-        
+
         # Start at medium
         assert config_state.current_difficulty == "medium"
-        
+
         # Change to hard (right)
         config_state._change_option(True, game)
         assert config_state.current_difficulty == "hard"
-        
+
         # Change to expert (right)
         config_state._change_option(True, game)
         assert config_state.current_difficulty == "expert"
-        
+
         # Wrap to easy (right)
         config_state._change_option(True, game)
         assert config_state.current_difficulty == "easy"
-        
+
         # Back to expert (left)
         config_state._change_option(False, game)
         assert config_state.current_difficulty == "expert"
@@ -1171,11 +1171,11 @@ class TestConfigMenu:
         """Test toggling hold feature"""
         config_state = ConfigMenuState()
         config_state.selected_option = 2  # Hold blocks option
-        
+
         initial_state = game.config.HOLD_ENABLED
         config_state._change_option(True, game)
         assert game.config.HOLD_ENABLED != initial_state
-        
+
         # Toggle back
         config_state._change_option(True, game)
         assert game.config.HOLD_ENABLED == initial_state
@@ -1184,11 +1184,11 @@ class TestConfigMenu:
         """Test toggling charged blocks feature"""
         config_state = ConfigMenuState()
         config_state.selected_option = 1  # Charged blocks option
-        
+
         initial_state = game.config.CHARGED_BLOCKS_ENABLED
         config_state._change_option(True, game)
         assert game.config.CHARGED_BLOCKS_ENABLED != initial_state
-        
+
         # Toggle back
         config_state._change_option(True, game)
         assert game.config.CHARGED_BLOCKS_ENABLED == initial_state
@@ -1196,14 +1196,14 @@ class TestConfigMenu:
     def test_apply_difficulty_settings(self, game: TetrisGame) -> None:
         """Test applying difficulty settings"""
         config_state = ConfigMenuState()
-        
+
         # Set to easy
         config_state.current_difficulty = "easy"
         config_state._apply_settings(game)
         assert game.config.INITIAL_FALL_SPEED == 1500
         assert game.config.LEVEL_SPEED_DECREASE == 80
         assert game.config.MIN_FALL_SPEED == 200
-        
+
         # Set to expert
         config_state.current_difficulty = "expert"
         config_state._apply_settings(game)
@@ -1215,10 +1215,10 @@ class TestConfigMenu:
         """Test that hold doesn't work when disabled"""
         game.config.HOLD_ENABLED = False
         game.can_hold = True
-        
+
         initial_current = game.current_piece.type if game.current_piece else None
         game.hold_current_piece()
-        
+
         # Hold should not have worked
         assert game.hold_piece is None
         if initial_current:
@@ -1228,10 +1228,10 @@ class TestConfigMenu:
         """Test that hold works when enabled"""
         game.config.HOLD_ENABLED = True
         game.can_hold = True
-        
+
         initial_current = game.current_piece.type if game.current_piece else None
         game.hold_current_piece()
-        
+
         # Hold should have worked
         assert game.hold_piece is not None
         assert game.hold_piece.type == initial_current
@@ -1240,13 +1240,13 @@ class TestConfigMenu:
         """Test menu navigation with key events"""
         config_state = ConfigMenuState()
         game.state = config_state
-        
+
         # Test DOWN navigation
         assert config_state.selected_option == 0
         event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_DOWN)
         config_state.handle_input(event, game)
         assert config_state.selected_option == 1
-        
+
         # Test UP navigation
         event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_UP)
         config_state.handle_input(event, game)
@@ -1256,14 +1256,14 @@ class TestConfigMenu:
         """Test exiting menu with ENTER (apply)"""
         config_state = ConfigMenuState()
         game.state = config_state
-        
+
         # Navigate to back option
         config_state.selected_option = 3
-        
+
         # Press ENTER
         event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN)
         config_state.handle_input(event, game)
-        
+
         # Should return to playing state
         assert isinstance(game.state, PlayingState)
 
@@ -1271,11 +1271,11 @@ class TestConfigMenu:
         """Test exiting menu with ESC (cancel)"""
         config_state = ConfigMenuState()
         game.state = config_state
-        
+
         # Press ESC
         event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)
         config_state.handle_input(event, game)
-        
+
         # Should return to playing state
         assert isinstance(game.state, PlayingState)
 

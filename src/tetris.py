@@ -10,7 +10,6 @@ import pygame
 
 from src.config import GameConfig
 from src.game_states import (
-    ConfigMenuState,
     DemoState,
     GameOverState,
     GameState,
@@ -522,7 +521,7 @@ class TetrisGame:
         # Check if hold feature is enabled
         if not self.config.HOLD_ENABLED:
             return
-            
+
         if not self.can_hold or self.current_piece is None:
             return
 
