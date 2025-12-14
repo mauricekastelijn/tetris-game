@@ -119,12 +119,12 @@ class PlayingState(GameState):
         """
         # Auto-fall
         game.fall_time += delta_time
-        
+
         # Apply time dilator effect (slows fall speed by 50%)
         effective_fall_speed = game.fall_speed
         if game.powerup_manager.is_active("time_dilator"):
             effective_fall_speed *= 2  # Double the time needed = 50% slower
-        
+
         if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
@@ -132,7 +132,7 @@ class PlayingState(GameState):
                 if not game.piece_has_landed:
                     game.piece_has_landed = True
                     game.lock_delay_timer = 0
-                
+
                 # Check if precision lock is active
                 if game.powerup_manager.is_active("precision_lock"):
                     game.lock_delay_timer += effective_fall_speed
@@ -410,12 +410,12 @@ class DemoState(GameState):
 
         # Auto-fall (same as PlayingState)
         game.fall_time += delta_time
-        
+
         # Apply time dilator effect (slows fall speed by 50%)
         effective_fall_speed = game.fall_speed
         if game.powerup_manager.is_active("time_dilator"):
             effective_fall_speed *= 2  # Double the time needed = 50% slower
-        
+
         if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
@@ -423,7 +423,7 @@ class DemoState(GameState):
                 if not game.piece_has_landed:
                     game.piece_has_landed = True
                     game.lock_delay_timer = 0
-                
+
                 # Check if precision lock is active
                 if game.powerup_manager.is_active("precision_lock"):
                     game.lock_delay_timer += effective_fall_speed

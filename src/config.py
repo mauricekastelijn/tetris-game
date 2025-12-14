@@ -137,6 +137,6 @@ class GameConfig:
         "phantom_mode": {"color": (180, 0, 255), "uses": 3},  # Purple, 3 uses
         "precision_lock": {"color": (0, 255, 150), "duration": 2000},  # Green, 2 seconds
     }
-    
+
     # Precision Lock configuration
     PRECISION_LOCK_DELAY = 2000  # milliseconds of hover time before auto-lock

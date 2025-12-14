@@ -31,9 +31,10 @@ class TestPowerUpManager:
 
     def test_spawn_chance_when_disabled(self) -> None:
         """Test that power-ups don't spawn when disabled"""
+
         class DisabledConfig(GameConfig):
             CHARGED_BLOCKS_ENABLED = False
-        
+
         manager = PowerUpManager(DisabledConfig)
         assert not manager.should_spawn_powerup()
 
@@ -60,7 +61,7 @@ class TestPowerUpManager:
         """Test getting power-up at specific location"""
         manager = PowerUpManager(GameConfig)
         manager.add_powerup_block(3, 7, "score_amplifier")
-        
+
         assert manager.get_powerup_at(3, 7) == "score_amplifier"
         assert manager.get_powerup_at(4, 7) is None
         assert manager.get_powerup_at(3, 8) is None
@@ -71,12 +72,12 @@ class TestPowerUpManager:
         manager.add_powerup_block(2, 5, "time_dilator")
         manager.add_powerup_block(4, 5, "score_amplifier")
         manager.add_powerup_block(6, 7, "time_dilator")
-        
+
         powerups = manager.get_powerups_in_line(5)
         assert len(powerups) == 2
         assert "time_dilator" in powerups
         assert "score_amplifier" in powerups
-        
+
         powerups = manager.get_powerups_in_line(7)
         assert len(powerups) == 1
         assert "time_dilator" in powerups
@@ -88,14 +89,14 @@ class TestPowerUpManager:
         manager.add_powerup_block(4, 5, "score_amplifier")
         manager.add_powerup_block(6, 7, "time_dilator")
         manager.add_powerup_block(8, 10, "score_amplifier")
-        
+
         activated = manager.remove_powerups_in_lines([5, 7])
-        
+
         assert len(activated) == 3
         assert "time_dilator" in activated
         assert "score_amplifier" in activated
         assert activated.count("time_dilator") == 2
-        
+
         # Only block at y=10 should remain
         assert len(manager.powerup_blocks) == 1
         assert manager.powerup_blocks[0] == (8, 10, "score_amplifier")
@@ -106,16 +107,16 @@ class TestPowerUpManager:
         manager.add_powerup_block(2, 3, "time_dilator")
         manager.add_powerup_block(4, 8, "score_amplifier")
         manager.add_powerup_block(6, 15, "time_dilator")
-        
+
         # Clear lines 5 and 10
         manager.shift_powerups_down([5, 10])
-        
+
         # Block at y=3 is above both cleared lines, shifts down 2
         assert (2, 5, "time_dilator") in manager.powerup_blocks
-        
+
         # Block at y=8 is below line 5 but above line 10, shifts down 1
         assert (4, 9, "score_amplifier") in manager.powerup_blocks
-        
+
         # Block at y=15 is below both lines, no shift (already below cleared lines)
         assert (6, 15, "time_dilator") in manager.powerup_blocks
 
@@ -123,7 +124,7 @@ class TestPowerUpManager:
         """Test activating duration-based power-up"""
         manager = PowerUpManager(GameConfig)
         manager.activate_powerup("time_dilator")
-        
+
         assert "time_dilator" in manager.active_powerups
         assert manager.active_powerups["time_dilator"] == 10000  # 10 seconds
 
@@ -132,18 +133,18 @@ class TestPowerUpManager:
         manager = PowerUpManager(GameConfig)
         manager.activate_powerup("time_dilator")
         manager.activate_powerup("time_dilator")
-        
+
         assert manager.active_powerups["time_dilator"] == 20000  # 20 seconds
 
     def test_update_duration_powerups(self) -> None:
         """Test updating duration-based power-ups"""
         manager = PowerUpManager(GameConfig)
         manager.activate_powerup("time_dilator")
-        
+
         # Update by 5 seconds
         manager.update(5000)
         assert manager.active_powerups["time_dilator"] == 5000
-        
+
         # Update by another 6 seconds - should expire
         manager.update(6000)
         assert "time_dilator" not in manager.active_powerups
@@ -151,12 +152,12 @@ class TestPowerUpManager:
     def test_is_active(self) -> None:
         """Test checking if power-up is active"""
         manager = PowerUpManager(GameConfig)
-        
+
         assert not manager.is_active("time_dilator")
-        
+
         manager.activate_powerup("time_dilator")
         assert manager.is_active("time_dilator")
-        
+
         manager.update(15000)
         assert not manager.is_active("time_dilator")
 
@@ -165,10 +166,10 @@ class TestPowerUpManager:
         manager = PowerUpManager(GameConfig)
         manager.activate_powerup("time_dilator")
         manager.activate_powerup("score_amplifier")
-        
+
         display_info = manager.get_active_powerups_display()
         assert len(display_info) == 2
-        
+
         # Check format
         for powerup_type, display_text, color in display_info:
             assert powerup_type in ["time_dilator", "score_amplifier"]
@@ -181,9 +182,9 @@ class TestPowerUpManager:
         manager = PowerUpManager(GameConfig)
         manager.add_powerup_block(2, 5, "time_dilator")
         manager.activate_powerup("score_amplifier")
-        
+
         manager.clear_all()
-        
+
         assert len(manager.powerup_blocks) == 0
         assert len(manager.active_powerups) == 0
 
@@ -207,27 +208,28 @@ class TestTetrisGameWithPowerUps:
         """Test that reset_game clears all power-ups"""
         game.powerup_manager.add_powerup_block(2, 5, "time_dilator")
         game.powerup_manager.activate_powerup("score_amplifier")
-        
+
         game.reset_game()
-        
+
         assert len(game.powerup_manager.powerup_blocks) == 0
         assert len(game.powerup_manager.active_powerups) == 0
 
     def test_time_dilator_slows_fall(self, game: TetrisGame) -> None:
         """Test that time dilator slows fall speed"""
         original_fall_speed = game.fall_speed
-        
+
         # Activate time dilator
         game.powerup_manager.activate_powerup("time_dilator")
-        
+
         # Update game state
         from src.game_states import PlayingState
+
         game.state = PlayingState()
-        
+
         # Time should accumulate slower with time dilator
         game.fall_time = 0
         game.state.update(original_fall_speed, game)
-        
+
         # With time dilator, piece should not have fallen yet
         # because effective speed is 2x
         assert game.current_piece is not None
@@ -237,13 +239,13 @@ class TestTetrisGameWithPowerUps:
         # Set up a line to clear
         for x in range(game.config.GRID_WIDTH):
             game.grid[game.config.GRID_HEIGHT - 1][x] = (255, 255, 255)
-        
+
         # Activate score amplifier
         game.powerup_manager.activate_powerup("score_amplifier")
-        
+
         initial_score = game.score
         game.clear_lines()
-        
+
         # Score should be doubled
         # Base score for 1 line at level 1 = 100
         # With score amplifier = 100 * 2 = 200
@@ -254,13 +256,13 @@ class TestTetrisGameWithPowerUps:
         """Test that power-ups activate when line is cleared"""
         # Add a power-up to the bottom line
         game.powerup_manager.add_powerup_block(5, game.config.GRID_HEIGHT - 1, "time_dilator")
-        
+
         # Fill the bottom line
         for x in range(game.config.GRID_WIDTH):
             game.grid[game.config.GRID_HEIGHT - 1][x] = (255, 255, 255)
-        
+
         game.clear_lines()
-        
+
         # Power-up should be activated
         assert game.powerup_manager.is_active("time_dilator")
 
@@ -268,14 +270,14 @@ class TestTetrisGameWithPowerUps:
         """Test that power-ups shift down after line clear"""
         # Add a power-up above the bottom line
         game.powerup_manager.add_powerup_block(3, game.config.GRID_HEIGHT - 3, "score_amplifier")
-        
+
         # Fill the bottom line
         for x in range(game.config.GRID_WIDTH):
             game.grid[game.config.GRID_HEIGHT - 1][x] = (255, 255, 255)
-        
+
         game.clear_lines()
         game.finish_clearing_animation()
-        
+
         # Power-up should have shifted down
         powerup = game.powerup_manager.get_powerup_at(3, game.config.GRID_HEIGHT - 2)
         assert powerup == "score_amplifier"
@@ -306,17 +308,17 @@ class TestPowerUpOnFallingPieces:
         """Test that power-ups transfer from piece to grid when locked"""
         # Set current piece to have a power-up
         game.current_piece.powerup_blocks[(0, 0)] = "time_dilator"
-        
+
         # Position piece at bottom
         game.current_piece.y = game.config.GRID_HEIGHT - len(game.current_piece.shape)
-        
+
         # Get the grid position of the first block
         grid_x = game.current_piece.x
         grid_y = game.current_piece.y
-        
+
         # Lock the piece
         game.lock_piece()
-        
+
         # Check that power-up was transferred to grid
         powerup = game.powerup_manager.get_powerup_at(grid_x, grid_y)
         assert powerup == "time_dilator"
@@ -324,14 +326,14 @@ class TestPowerUpOnFallingPieces:
     def test_no_powerups_when_disabled(self) -> None:
         """Test that no power-ups spawn when feature is disabled"""
         pygame.init()
-        
+
         class DisabledConfig(GameConfig):
             CHARGED_BLOCKS_ENABLED = False
             POWER_UP_SPAWN_CHANCE = 1.0  # High chance but disabled
             DEMO_AUTO_START = False
-        
+
         game = TetrisGame(DisabledConfig)
-        
+
         # Generate several pieces
         for _ in range(10):
             piece = game.get_random_piece()

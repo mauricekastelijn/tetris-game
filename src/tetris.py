@@ -168,7 +168,7 @@ class TetrisGame:
             Newly created Tetromino of random type, possibly with power-up
         """
         piece = Tetromino(random.choice(list(self.config.SHAPES.keys())), self.config)
-        
+
         # Assign power-up to one random block if enabled
         if self.powerup_manager.should_spawn_powerup():
             # Get all block positions in the piece (local coordinates)
@@ -177,13 +177,13 @@ class TetrisGame:
                 for x, cell in enumerate(row):
                     if cell:
                         blocks.append((x, y))
-            
+
             if blocks:
                 # Choose one random block to be a power-up
                 local_x, local_y = random.choice(blocks)
                 powerup_type = self.powerup_manager.get_random_powerup_type()
                 piece.powerup_blocks[(local_x, local_y)] = powerup_type
-        
+
         return piece
 
     def spawn_new_piece(self) -> None:
@@ -397,21 +397,21 @@ class TetrisGame:
         """
         if self.current_piece is None:
             return
-            
+
         # Consume phantom mode use if it was active during placement
         if self.powerup_manager.is_active("phantom_mode"):
             self.powerup_manager.use_powerup("phantom_mode")
-            
+
         # Transfer blocks and power-ups from piece to grid
         for local_y, row in enumerate(self.current_piece.shape):
             for local_x, cell in enumerate(row):
                 if cell:
                     grid_x = self.current_piece.x + local_x
                     grid_y = self.current_piece.y + local_y
-                    
+
                     if grid_y >= 0:
                         self.grid[grid_y][grid_x] = self.current_piece.color
-                        
+
                         # Transfer power-up if this block has one
                         if (local_x, local_y) in self.current_piece.powerup_blocks:
                             powerup_type = self.current_piece.powerup_blocks[(local_x, local_y)]
@@ -653,7 +653,7 @@ class TetrisGame:
                 color = self.grid[y][x]
                 if color is not None:
                     self.draw_block(x, y, color)
-                    
+
                     # Draw power-up glow effect if this is a power-up block
                     powerup_type = self.powerup_manager.get_powerup_at(x, y)
                     if powerup_type:
@@ -717,10 +717,10 @@ class TetrisGame:
                     if cell:
                         grid_x = self.current_piece.x + local_x
                         grid_y = self.current_piece.y + local_y
-                        
+
                         if grid_y >= 0:
                             self.draw_block(grid_x, grid_y, self.current_piece.color)
-                            
+
                             # Draw power-up glow if this block has a power-up
                             if (local_x, local_y) in self.current_piece.powerup_blocks:
                                 powerup_type = self.current_piece.powerup_blocks[(local_x, local_y)]
@@ -742,21 +742,21 @@ class TetrisGame:
         pulse_speed = self.config.POWER_UP_GLOW_ANIMATION_SPEED
         pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms * pulse_speed / 10).x) / 2
         alpha = int(100 + 155 * pulse)
-        
+
         # Rainbow gradient effect - cycle through hues
         hue = (time_ms / 20 + x * 30 + y * 30) % 360  # Creates moving rainbow pattern
-        
+
         # Convert HSV to RGB for rainbow effect
         import colorsys
+
         r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
         rainbow_color = (int(r * 255), int(g * 255), int(b * 255))
 
         # Create glow surface with rainbow gradient
         glow_surface = pygame.Surface(
-            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2),
-            pygame.SRCALPHA
+            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2), pygame.SRCALPHA
         )
-        
+
         # Draw rainbow border glow with multiple layers for gradient effect
         for layer in range(3):
             border_width = 3 - layer
@@ -766,7 +766,7 @@ class TetrisGame:
                 glow_surface,
                 glow_color_with_alpha,
                 glow_surface.get_rect().inflate(-layer * 2, -layer * 2),
-                border_width
+                border_width,
             )
 
         # Blit to screen
@@ -789,21 +789,21 @@ class TetrisGame:
         pulse_speed = self.config.POWER_UP_GLOW_ANIMATION_SPEED
         pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms * pulse_speed / 10).x) / 2
         alpha = int(100 + 155 * pulse)
-        
+
         # Rainbow gradient effect
         hue = (time_ms / 20) % 360
-        
+
         # Convert HSV to RGB for rainbow effect
         import colorsys
+
         r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
         rainbow_color = (int(r * 255), int(g * 255), int(b * 255))
 
         # Create glow surface
         glow_surface = pygame.Surface(
-            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2),
-            pygame.SRCALPHA
+            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2), pygame.SRCALPHA
         )
-        
+
         # Draw rainbow border glow
         for layer in range(2):  # Fewer layers for preview
             border_width = 2 - layer
@@ -813,7 +813,7 @@ class TetrisGame:
                 glow_surface,
                 glow_color_with_alpha,
                 glow_surface.get_rect().inflate(-layer * 2, -layer * 2),
-                border_width
+                border_width,
             )
 
         # Blit to screen at exact position
@@ -918,12 +918,12 @@ class TetrisGame:
                             self.config.BLOCK_SIZE - 2,
                         )
                         pygame.draw.rect(self.screen, piece.color, rect)
-                        
+
                         # Draw power-up glow if this block has a power-up
                         if (col_idx, row_idx) in piece.powerup_blocks:
                             self._draw_preview_powerup_glow(
                                 offset_x + col_idx * self.config.BLOCK_SIZE,
-                                offset_y + row_idx * self.config.BLOCK_SIZE
+                                offset_y + row_idx * self.config.BLOCK_SIZE,
                             )
 
     def draw_ui(self) -> None:
@@ -1036,7 +1036,7 @@ class TetrisGame:
         Displays active power-ups in a list on the right side of the screen.
         """
         active_powerups = self.powerup_manager.get_active_powerups_display()
-        
+
         if not active_powerups:
             return
 
@@ -1254,9 +1254,7 @@ class TetrisGame:
                             PlayingState,
                         )
 
-                        if isinstance(
-                            self.state, (PlayingState, DemoState, GameOverState)
-                        ):
+                        if isinstance(self.state, (PlayingState, DemoState, GameOverState)):
                             running = False
                         else:
                             # Let the state handle ESC (ConfigMenuState, PausedState)
