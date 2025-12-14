@@ -316,6 +316,8 @@ class TestPowerUpOnFallingPieces:
             if first_block:
                 break
 
+        assert first_block is not None, "Piece has no blocks"
+
         # Set that block to have a power-up
         game.current_piece.powerup_blocks[first_block] = "time_dilator"
 
