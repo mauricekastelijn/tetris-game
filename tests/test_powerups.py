@@ -306,15 +306,25 @@ class TestPowerUpOnFallingPieces:
 
     def test_powerup_transferred_on_lock(self, game: TetrisGame) -> None:
         """Test that power-ups transfer from piece to grid when locked"""
-        # Set current piece to have a power-up
-        game.current_piece.powerup_blocks[(0, 0)] = "time_dilator"
+        # Find the first block in the piece to place powerup on it
+        first_block = None
+        for local_y, row in enumerate(game.current_piece.shape):
+            for local_x, cell in enumerate(row):
+                if cell:
+                    first_block = (local_x, local_y)
+                    break
+            if first_block:
+                break
+
+        # Set that block to have a power-up
+        game.current_piece.powerup_blocks[first_block] = "time_dilator"
 
         # Position piece at bottom
         game.current_piece.y = game.config.GRID_HEIGHT - len(game.current_piece.shape)
 
-        # Get the grid position of the first block
-        grid_x = game.current_piece.x
-        grid_y = game.current_piece.y
+        # Calculate the grid position where the powerup block will land
+        grid_x = game.current_piece.x + first_block[0]
+        grid_y = game.current_piece.y + first_block[1]
 
         # Lock the piece
         game.lock_piece()

@@ -81,7 +81,7 @@ class PowerUpManager:
             List of power-up types found in the line
         """
         powerups = []
-        for x, y, powerup_type in self.powerup_blocks:
+        for _, y, powerup_type in self.powerup_blocks:
             if y == line_y:
                 powerups.append(powerup_type)
         return powerups
