@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.2...v1.1.0) (2025-12-14)
+
+
+### Features
+
+* demo mode ([120bdc7](https://github.com/mauricekastelijn/tetris-game/commit/120bdc738d7dc49c3cb1513c1d3a0ef540a64458))
+* demo mode ([96db87a](https://github.com/mauricekastelijn/tetris-game/commit/96db87a0cffff242869cbe2334747d17c8eee952))
+
+
+### Bug Fixes
+
+* **#29:** Lower combo animation to prevent clipping at screen top ([014c578](https://github.com/mauricekastelijn/tetris-game/commit/014c578fc45f1b5d28e87f075bd37278ccd2665b))
+* Configure pylint and fix build_exe.py code quality issues ([39c4dc9](https://github.com/mauricekastelijn/tetris-game/commit/39c4dc9bb1c304ee4ed6330019b5dc4d561a3153))
+
 ## [1.0.2](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.1...v1.0.2) (2025-12-10)
 
 
