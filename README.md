@@ -15,7 +15,20 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - ✨ Animated line clearing + 3D block rendering
 - 📈 Progressive difficulty + advanced scoring (single: 100×level, Tetris: 800×level)
 - 🤖 **AI-powered demo mode** (attract mode) - watch the AI play strategically
-- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R ESC)
+- ⚡ **Charged Blocks (Power-Ups)** - strategic bonuses without breaking core mechanics
+- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R M ESC)
+
+### Charged Blocks (Power-Up System)
+
+Special glowing blocks spawn within the grid at a configurable rate (default 1.5%). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
+
+- **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
+- **💎 Score Amplifier** (Gold) - 2x score multiplier for 8 seconds
+- **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (1 use)
+- **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks (3 uses)
+- **🎯 Precision Lock** (Green) - Gain 2 seconds of hover time before auto-lock (2s duration)
+
+**Toggle power-ups:** Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks.
 
 ### Demo Mode (Attract Mode)
 
@@ -103,6 +116,29 @@ game.run()
 ```
 
 **Configurable:** Display settings, grid size, timing, scoring, colors, shapes. See `GameConfig` class for all options.
+
+### Power-Up Configuration
+
+Customize power-up behavior:
+
+```python
+class CustomPowerUpConfig(GameConfig):
+    CHARGED_BLOCKS_ENABLED = True  # Enable power-ups
+    POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
+    POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster glow animation
+    
+    # Customize individual power-up durations/uses
+    POWER_UP_TYPES = {
+        'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
+        'score_amplifier': {'color': (255, 215, 0), 'duration': 10000},  # 10 seconds
+        'line_bomb': {'color': (255, 50, 50), 'uses': 2},  # 2 uses
+        'phantom_mode': {'color': (180, 0, 255), 'uses': 5},  # 5 uses
+        'precision_lock': {'color': (0, 255, 150), 'duration': 3000},  # 3 seconds
+    }
+
+game = TetrisGame(CustomPowerUpConfig)
+game.run()
+```
 
 ### Demo Mode Configuration
 
