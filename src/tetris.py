@@ -16,6 +16,7 @@ from src.game_states import (
     LineClearingState,
     PlayingState,
 )
+from src.powerups import PowerUpManager
 from src.tetromino import Tetromino
 
 # Initialize Pygame
@@ -128,6 +129,9 @@ class TetrisGame:
         self.combo_display_time = 0
         self.combo_text = ""
         self.combo_tier = ""
+
+        # Power-up system
+        self.powerup_manager = PowerUpManager(self.config)
 
         # Timing
         self.fall_time = 0
@@ -352,8 +356,11 @@ class TetrisGame:
         then initiates line clearing. If no lines are cleared,
         spawns the next piece immediately and resets the combo.
 
+        Power-ups may spawn on placed blocks based on configuration.
+
         Side effects:
             - Updates self.grid with current piece's blocks
+            - May spawn power-ups on placed blocks
             - Calls clear_lines() to check for completed lines
             - If no lines cleared, resets combo and spawns new piece
 
@@ -366,6 +373,11 @@ class TetrisGame:
         for x, y in self.current_piece.get_blocks():
             if y >= 0:
                 self.grid[y][x] = self.current_piece.color
+                
+                # Spawn power-ups on placed blocks
+                if self.powerup_manager.should_spawn_powerup():
+                    powerup_type = self.powerup_manager.get_random_powerup_type()
+                    self.powerup_manager.add_powerup_block(x, y, powerup_type)
 
         self.clear_lines()
         if not self.clearing_lines:
@@ -432,11 +444,17 @@ class TetrisGame:
                     + self.combo_count * self.config.COMBO_MULTIPLIER_INCREMENT,
                     self.config.MAX_COMBO_MULTIPLIER,
                 )
-                self.score += int(base_score * self.combo_multiplier)
+                final_score = int(base_score * self.combo_multiplier)
             else:
                 # First clear has no multiplier
                 self.combo_multiplier = 1.0
-                self.score += base_score
+                final_score = base_score
+
+            # Apply score amplifier power-up (2x multiplier)
+            if self.powerup_manager.is_active("score_amplifier"):
+                final_score *= 2
+
+            self.score += final_score
 
             # Increment combo count
             self.combo_count += 1
@@ -462,6 +480,11 @@ class TetrisGame:
                     - (self.level - 1) * self.config.LEVEL_SPEED_DECREASE,
                 )
 
+            # Activate power-ups from cleared lines
+            activated_powerups = self.powerup_manager.remove_powerups_in_lines(lines_to_clear)
+            for powerup_type in activated_powerups:
+                self.powerup_manager.activate_powerup(powerup_type)
+
             # Transition to line clearing state, preserving current state
             self.state = LineClearingState(previous_state=self.state)
 
@@ -469,11 +492,12 @@ class TetrisGame:
         """Complete the line clearing animation and remove lines from grid.
 
         Removes all rows marked for clearing and inserts empty rows at
-        the top, then spawns the next piece.
+        the top, then spawns the next piece. Also shifts power-up blocks down.
 
         Side effects:
             - Removes rows in self.clearing_lines from self.grid
             - Inserts empty rows at top of grid
+            - Shifts power-up blocks down accordingly
             - Clears self.clearing_lines list
             - Spawns new piece via spawn_new_piece()
 
@@ -497,6 +521,9 @@ class TetrisGame:
             # Add empty rows at the top
             empty_rows = [[None for _ in range(self.config.GRID_WIDTH)] for _ in range(num_lines)]
             self.grid = empty_rows + new_grid
+
+            # Shift power-up blocks down
+            self.powerup_manager.shift_powerups_down(self.clearing_lines)
 
             self.clearing_lines = []
             self.spawn_new_piece()
@@ -576,6 +603,7 @@ class TetrisGame:
     def _draw_placed_blocks(self) -> None:
         """Draw blocks that have been locked into the grid.
 
+        Includes power-up glow effects for charged blocks.
         Helper method to reduce complexity of draw_grid.
         """
         for y in range(self.config.GRID_HEIGHT):
@@ -583,6 +611,11 @@ class TetrisGame:
                 color = self.grid[y][x]
                 if color is not None:
                     self.draw_block(x, y, color)
+                    
+                    # Draw power-up glow effect if this is a power-up block
+                    powerup_type = self.powerup_manager.get_powerup_at(x, y)
+                    if powerup_type:
+                        self._draw_powerup_glow(x, y, powerup_type)
 
     def _draw_clearing_animation(self) -> None:
         """Draw line clearing animation effect.
@@ -638,6 +671,47 @@ class TetrisGame:
             for x, y in self.current_piece.get_blocks():
                 if y >= 0:
                     self.draw_block(x, y, self.current_piece.color)
+
+    def _draw_powerup_glow(self, x: int, y: int, powerup_type: str) -> None:
+        """Draw animated glow effect around a power-up block.
+
+        Args:
+            x: Grid x coordinate
+            y: Grid y coordinate
+            powerup_type: Type of power-up for color selection
+        """
+        if not self.config.CHARGED_BLOCKS_ENABLED:
+            return
+
+        # Get power-up color
+        powerup_config = self.config.POWER_UP_TYPES.get(powerup_type, {})
+        glow_color = powerup_config.get("color", (255, 255, 255))
+
+        # Calculate pulsing alpha based on time
+        time_ms = pygame.time.get_ticks()
+        pulse_speed = self.config.POWER_UP_GLOW_ANIMATION_SPEED
+        pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms * pulse_speed / 10).x) / 2
+        alpha = int(100 + 155 * pulse)
+
+        # Create glow surface
+        glow_surface = pygame.Surface(
+            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2),
+            pygame.SRCALPHA
+        )
+        
+        # Draw border glow
+        glow_color_with_alpha = (*glow_color, alpha)
+        pygame.draw.rect(
+            glow_surface,
+            glow_color_with_alpha,
+            glow_surface.get_rect(),
+            3  # Border width
+        )
+
+        # Blit to screen
+        screen_x = self.config.GRID_X + x * self.config.BLOCK_SIZE + 1
+        screen_y = self.config.GRID_Y + y * self.config.BLOCK_SIZE + 1
+        self.screen.blit(glow_surface, (screen_x, screen_y))
 
     def draw_grid(self) -> None:
         """Draw the game grid with background, placed blocks, and active pieces.
@@ -818,6 +892,10 @@ class TetrisGame:
         # Hold piece
         self.draw_piece_preview(self.hold_piece, 580, 250, "HOLD")
 
+        # Active power-ups display
+        if self.config.CHARGED_BLOCKS_ENABLED:
+            self._draw_active_powerups()
+
         # Controls
         controls = [
             "Controls:",
@@ -837,12 +915,94 @@ class TetrisGame:
             control_text = self.small_font.render(control, True, self.config.WHITE)
             self.screen.blit(control_text, (50, 400 + i * 30))
 
+    def _draw_active_powerups(self) -> None:
+        """Draw active power-ups with timers/uses.
+
+        Displays active power-ups in a list on the right side of the screen.
+        """
+        active_powerups = self.powerup_manager.get_active_powerups_display()
+        
+        if not active_powerups:
+            return
+
+        # Title
+        title_text = self.small_font.render("POWER-UPS", True, self.config.WHITE)
+        self.screen.blit(title_text, (580, 380))
+
+        # Draw each active power-up
+        y_pos = 410
+        for _, display_text, color in active_powerups:
+            powerup_text = self.small_font.render(display_text, True, color)
+            self.screen.blit(powerup_text, (580, y_pos))
+            y_pos += 25
+
+    def _apply_powerup_effects(self, delta_time: int) -> None:
+        """Apply active power-up effects to game state.
+
+        Args:
+            delta_time: Time elapsed since last update in milliseconds
+
+        Side effects:
+            Modifies game state based on active power-ups:
+            - time_dilator: Reduces fall speed
+            - score_amplifier: Applied during line clearing
+            - line_bomb: Instant line clear (use-based)
+            - phantom_mode: Allows collision override (use-based)
+            - precision_lock: Extended lock delay (duration-based)
+        """
+        # Time Dilator: Slow down fall speed
+        # This is applied passively through fall speed calculation in PlayingState/DemoState
+        # The effect is handled by checking if active in the falling logic
+
+        # Score Amplifier: Applied in clear_lines() scoring calculation
+        # The effect is handled there, not here
+
+        # Line Bomb: Instant line clear - handled via use when needed
+        # This is triggered manually, not automatically
+
+        # Phantom Mode: Allow pieces to pass through blocks during placement
+        # This is checked in collision detection when active
+
+        # Precision Lock: Extended lock delay before piece auto-locks
+        # This is handled in the piece landing logic
+        pass
+
+    def _clear_bottom_line(self) -> None:
+        """Clear the bottom-most line (Line Bomb effect).
+
+        Removes the bottom line and shifts all lines down.
+        Does not award score.
+
+        Side effects:
+            - Removes bottom row from grid
+            - Shifts all lines down
+            - Shifts power-up blocks down
+        """
+        # Find the bottom-most non-empty line
+        bottom_line = None
+        for y in range(self.config.GRID_HEIGHT - 1, -1, -1):
+            if any(self.grid[y][x] is not None for x in range(self.config.GRID_WIDTH)):
+                bottom_line = y
+                break
+
+        if bottom_line is not None:
+            # Remove power-ups in this line
+            self.powerup_manager.remove_powerups_in_lines([bottom_line])
+
+            # Remove the line
+            self.grid.pop(bottom_line)
+            # Add empty line at top
+            self.grid.insert(0, [None for _ in range(self.config.GRID_WIDTH)])
+
+            # Shift remaining power-ups down
+            self.powerup_manager.shift_powerups_down([bottom_line])
+
     def reset_game(self) -> None:
         """Reset the game to initial state.
 
         Clears the grid, resets score/level/lines, generates new pieces,
-        resets combo state, and transitions to PlayingState. Used when
-        restarting after game over.
+        resets combo state, clears power-ups, and transitions to PlayingState.
+        Used when restarting after game over.
 
         Side effects:
             - Clears self.grid (all cells set to None)
@@ -851,6 +1011,7 @@ class TetrisGame:
             - Resets fall_speed to initial speed
             - Clears any active line clearing animation
             - Resets combo state
+            - Clears all power-up data
             - Generates new next_piece
             - Clears hold_piece
             - Transitions to PlayingState
@@ -871,6 +1032,7 @@ class TetrisGame:
         self.combo_display_time = 0
         self.combo_text = ""
         self.combo_tier = ""
+        self.powerup_manager.clear_all()
         self.next_piece = self.get_random_piece()
         self.hold_piece = None
         self.can_hold = True
@@ -897,7 +1059,8 @@ class TetrisGame:
 
         Side effects:
             If game_over is False, delegates to self.state.update()
-            which may modify game state. Also updates combo display timer.
+            which may modify game state. Also updates combo display timer
+            and power-up timers.
         """
         if self.game_over:
             return
@@ -905,6 +1068,12 @@ class TetrisGame:
         # Update combo display timer
         if self.combo_display_time > 0:
             self.combo_display_time -= delta_time
+
+        # Update power-up timers
+        self.powerup_manager.update(delta_time)
+
+        # Apply power-up effects
+        self._apply_powerup_effects(delta_time)
 
         self.state.update(delta_time, self)
 

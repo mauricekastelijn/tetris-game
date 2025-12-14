@@ -111,7 +111,13 @@ class PlayingState(GameState):
         """
         # Auto-fall
         game.fall_time += delta_time
-        if game.fall_time >= game.fall_speed:
+        
+        # Apply time dilator effect (slows fall speed by 50%)
+        effective_fall_speed = game.fall_speed
+        if game.powerup_manager.is_active("time_dilator"):
+            effective_fall_speed *= 2  # Double the time needed = 50% slower
+        
+        if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
                 game.lock_piece()
@@ -381,7 +387,13 @@ class DemoState(GameState):
 
         # Auto-fall (same as PlayingState)
         game.fall_time += delta_time
-        if game.fall_time >= game.fall_speed:
+        
+        # Apply time dilator effect (slows fall speed by 50%)
+        effective_fall_speed = game.fall_speed
+        if game.powerup_manager.is_active("time_dilator"):
+            effective_fall_speed *= 2  # Double the time needed = 50% slower
+        
+        if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
                 game.lock_piece()
