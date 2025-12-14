@@ -132,6 +132,8 @@ class TetrisGame:
 
         # Power-up system
         self.powerup_manager = PowerUpManager(self.config)
+        self.lock_delay_timer = 0  # For precision lock power-up
+        self.piece_has_landed = False  # Track if piece has touched ground
 
         # Timing
         self.fall_time = 0
@@ -193,6 +195,7 @@ class TetrisGame:
 
         Validates that all blocks of the piece (with optional offset)
         are within grid boundaries and don't collide with placed blocks.
+        Phantom mode allows pieces to pass through existing blocks.
 
         Args:
             piece: Tetromino to check
@@ -205,6 +208,7 @@ class TetrisGame:
         Note:
             Negative y positions (above grid) are allowed for piece spawning.
             Only checks collision with grid blocks if y >= 0.
+            Phantom mode power-up allows collision with placed blocks.
         """
         for x, y in piece.get_blocks():
             new_x = x + offset_x
@@ -215,8 +219,10 @@ class TetrisGame:
                 return False
 
             # Check collision with placed blocks
+            # Phantom mode allows passing through blocks during placement
             if new_y >= 0 and self.grid[new_y][new_x] is not None:
-                return False
+                if not self.powerup_manager.is_active("phantom_mode"):
+                    return False
 
         return True
 
@@ -357,12 +363,15 @@ class TetrisGame:
         spawns the next piece immediately and resets the combo.
 
         Power-ups may spawn on placed blocks based on configuration.
+        Consumes one use of phantom mode if active.
 
         Side effects:
             - Updates self.grid with current piece's blocks
             - May spawn power-ups on placed blocks
+            - Consumes phantom mode use if active
             - Calls clear_lines() to check for completed lines
             - If no lines cleared, resets combo and spawns new piece
+            - Resets lock delay timer
 
         Note:
             Blocks above the grid (y < 0) are not added to prevent
@@ -370,6 +379,11 @@ class TetrisGame:
         """
         if self.current_piece is None:
             return
+            
+        # Consume phantom mode use if it was active during placement
+        if self.powerup_manager.is_active("phantom_mode"):
+            self.powerup_manager.use_powerup("phantom_mode")
+            
         for x, y in self.current_piece.get_blocks():
             if y >= 0:
                 self.grid[y][x] = self.current_piece.color
@@ -378,6 +392,10 @@ class TetrisGame:
                 if self.powerup_manager.should_spawn_powerup():
                     powerup_type = self.powerup_manager.get_random_powerup_type()
                     self.powerup_manager.add_powerup_block(x, y, powerup_type)
+
+        # Reset lock delay timer
+        self.lock_delay_timer = 0
+        self.piece_has_landed = False
 
         self.clear_lines()
         if not self.clearing_lines:
@@ -673,7 +691,7 @@ class TetrisGame:
                     self.draw_block(x, y, self.current_piece.color)
 
     def _draw_powerup_glow(self, x: int, y: int, powerup_type: str) -> None:
-        """Draw animated glow effect around a power-up block.
+        """Draw animated rainbow gradient glow effect around a power-up block.
 
         Args:
             x: Grid x coordinate
@@ -683,30 +701,37 @@ class TetrisGame:
         if not self.config.CHARGED_BLOCKS_ENABLED:
             return
 
-        # Get power-up color
-        powerup_config = self.config.POWER_UP_TYPES.get(powerup_type, {})
-        glow_color = powerup_config.get("color", (255, 255, 255))
-
-        # Calculate pulsing alpha based on time
+        # Calculate pulsing alpha and rainbow hue based on time
         time_ms = pygame.time.get_ticks()
         pulse_speed = self.config.POWER_UP_GLOW_ANIMATION_SPEED
         pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms * pulse_speed / 10).x) / 2
         alpha = int(100 + 155 * pulse)
+        
+        # Rainbow gradient effect - cycle through hues
+        hue = (time_ms / 20 + x * 30 + y * 30) % 360  # Creates moving rainbow pattern
+        
+        # Convert HSV to RGB for rainbow effect
+        import colorsys
+        r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
+        rainbow_color = (int(r * 255), int(g * 255), int(b * 255))
 
-        # Create glow surface
+        # Create glow surface with rainbow gradient
         glow_surface = pygame.Surface(
             (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2),
             pygame.SRCALPHA
         )
         
-        # Draw border glow
-        glow_color_with_alpha = (*glow_color, alpha)
-        pygame.draw.rect(
-            glow_surface,
-            glow_color_with_alpha,
-            glow_surface.get_rect(),
-            3  # Border width
-        )
+        # Draw rainbow border glow with multiple layers for gradient effect
+        for layer in range(3):
+            border_width = 3 - layer
+            layer_alpha = int(alpha * (1.0 - layer * 0.3))
+            glow_color_with_alpha = (*rainbow_color, layer_alpha)
+            pygame.draw.rect(
+                glow_surface,
+                glow_color_with_alpha,
+                glow_surface.get_rect().inflate(-layer * 2, -layer * 2),
+                border_width
+            )
 
         # Blit to screen
         screen_x = self.config.GRID_X + x * self.config.BLOCK_SIZE + 1
@@ -904,6 +929,7 @@ class TetrisGame:
             "Up: Rotate",
             "SPACE: Hard Drop",
             "C: Hold",
+            "B: Line Bomb",
             "P: Pause",
             "M: Menu",
             "G: Toggle Ghost",
@@ -1033,6 +1059,8 @@ class TetrisGame:
         self.combo_text = ""
         self.combo_tier = ""
         self.powerup_manager.clear_all()
+        self.lock_delay_timer = 0
+        self.piece_has_landed = False
         self.next_piece = self.get_random_piece()
         self.hold_piece = None
         self.can_hold = True

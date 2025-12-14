@@ -20,18 +20,23 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 
 ### Charged Blocks (Power-Up System)
 
-Special glowing blocks spawn within the grid at a configurable rate (default 1.5%). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
+Special glowing blocks with **rainbow gradient effects** spawn within the grid at a configurable rate (default 1.5%). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
 
-**Currently Implemented:**
+**All Power-Ups Fully Implemented:**
 - **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
 - **💎 Score Amplifier** (Gold) - 2x score multiplier for 8 seconds
-
-**Future Enhancements:**
-- **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (1 use)
-- **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks (3 uses)
+- **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (press 'B' to activate, 1 use)
+- **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks during placement (3 uses)
 - **🎯 Precision Lock** (Green) - Gain 2 seconds of hover time before auto-lock (2s duration)
 
-**Toggle power-ups:** Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks.
+**Visual Features:**
+- Rainbow gradient glow effect with pulsing animation
+- Active power-ups displayed with remaining time/uses
+- Distinct visual appearance for each power-up type
+
+**Controls:**
+- Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks
+- Press 'B' to activate Line Bomb when available
 
 ### Demo Mode (Attract Mode)
 
@@ -128,12 +133,16 @@ Customize power-up behavior:
 class CustomPowerUpConfig(GameConfig):
     CHARGED_BLOCKS_ENABLED = True  # Enable power-ups
     POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
-    POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster glow animation
+    POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster rainbow animation
+    PRECISION_LOCK_DELAY = 3000  # 3 seconds hover time (default: 2s)
     
-    # Customize individual power-up durations
+    # Customize individual power-up durations/uses
     POWER_UP_TYPES = {
         'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
         'score_amplifier': {'color': (255, 215, 0), 'duration': 10000},  # 10 seconds
+        'line_bomb': {'color': (255, 50, 50), 'uses': 2},  # 2 uses
+        'phantom_mode': {'color': (180, 0, 255), 'uses': 5},  # 5 uses
+        'precision_lock': {'color': (0, 255, 150), 'duration': 3000},  # 3 seconds
     }
 
 game = TetrisGame(CustomPowerUpConfig)
