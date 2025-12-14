@@ -2,11 +2,12 @@
 Game state classes implementing the State pattern for different game modes.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import pygame
 
 if TYPE_CHECKING:
+    from src.demo_ai import DemoAI
     from src.tetris import TetrisGame
 
 
@@ -54,7 +55,7 @@ class PlayingState(GameState):
         """Handle input during active gameplay.
 
         Processes keyboard input for piece movement, rotation, dropping,
-        holding, ghost piece toggle, and pause.
+        holding, ghost piece toggle, pause, and demo mode.
 
         Args:
             event: Pygame KEYDOWN event
@@ -68,6 +69,7 @@ class PlayingState(GameState):
             C: Hold current piece
             G: Toggle ghost piece visibility
             P: Pause game
+            D: Enter demo mode
         """
         if event.key == pygame.K_LEFT:
             game.move_piece(-1, 0)
@@ -86,6 +88,10 @@ class PlayingState(GameState):
             game.show_ghost = not game.show_ghost
         elif event.key == pygame.K_p:
             game.state = PausedState()
+        elif event.key == pygame.K_d:
+            # Enter demo mode
+            game.reset_game()
+            game.state = DemoState()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
@@ -177,6 +183,16 @@ class LineClearingState(GameState):
     processed during the animation.
     """
 
+    def __init__(self, previous_state: Optional[GameState] = None) -> None:
+        """Initialize line clearing state.
+
+        Args:
+            previous_state: The state to return to after animation completes.
+                           Defaults to PlayingState if not specified.
+        """
+        super().__init__()
+        self.previous_state = previous_state
+
     def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
         """No input handling during line clearing.
 
@@ -188,7 +204,7 @@ class LineClearingState(GameState):
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update line clearing animation.
 
-        Tracks animation progress and transitions back to playing
+        Tracks animation progress and transitions back to the previous
         state when animation completes.
 
         Args:
@@ -197,12 +213,23 @@ class LineClearingState(GameState):
 
         Side effects:
             When animation completes, calls finish_clearing_animation()
-            and transitions to PlayingState
+            and transitions to previous state or PlayingState
         """
         game.clear_animation_time += delta_time
         if game.clear_animation_time >= game.clear_animation_duration:
             game.finish_clearing_animation()
-            game.state = PlayingState()
+            # Return to appropriate state
+            if self.previous_state is not None:
+                # Create a new instance of the same state type
+                if isinstance(self.previous_state, DemoState):
+                    game.state = DemoState()
+                elif isinstance(self.previous_state, PlayingState):
+                    game.state = PlayingState()
+                else:
+                    # Fallback to the stored instance for other states
+                    game.state = self.previous_state
+            else:
+                game.state = PlayingState()
 
     def draw(self, game: "TetrisGame") -> None:
         """No additional drawing needed - animation handled in draw_grid.
@@ -222,6 +249,11 @@ class GameOverState(GameState):
     Shows final score and allows restarting.
     """
 
+    def __init__(self) -> None:
+        """Initialize game over state."""
+        super().__init__()
+        self.game_over_time = 0
+
     def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
         """Handle input in game over state.
 
@@ -239,12 +271,19 @@ class GameOverState(GameState):
             game.state = PlayingState()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
-        """No updates in game over state.
+        """Update game over state.
+
+        Tracks time and transitions to demo mode after delay if configured.
 
         Args:
-            delta_time: Time elapsed in milliseconds (ignored)
-            game: The TetrisGame instance (ignored)
+            delta_time: Time elapsed in milliseconds
+            game: The TetrisGame instance
         """
+        if game.config.DEMO_AFTER_GAME_OVER:
+            self.game_over_time += delta_time
+            if self.game_over_time >= game.config.DEMO_GAME_OVER_DELAY:
+                game.reset_game()
+                game.state = DemoState()
 
     def draw(self, game: "TetrisGame") -> None:
         """Draw game over overlay.
@@ -275,4 +314,96 @@ class GameOverState(GameState):
         game.screen.blit(
             restart_text,
             (game.config.SCREEN_WIDTH // 2 - restart_text.get_width() // 2, 400),
+        )
+
+
+class DemoState(GameState):
+    """Demo mode with AI-controlled gameplay.
+
+    In this state, the AI plays the game automatically to demonstrate
+    gameplay. Any key press exits demo mode and starts a new game.
+    """
+
+    def __init__(self) -> None:
+        """Initialize demo state."""
+        super().__init__()
+        self.ai: Optional["DemoAI"] = None
+        self.move_timer = 0
+
+    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
+        """Handle input during demo mode.
+
+        Any key exits demo mode and starts a new game.
+
+        Args:
+            event: Pygame KEYDOWN event
+            game: The TetrisGame instance to manipulate
+
+        Key bindings:
+            SPACE: Exit demo and start new game
+            ESC: Exit demo and start new game
+            Any other key: Exit demo and start new game
+        """
+        # Any key exits demo mode
+        game.reset_game()
+        game.state = PlayingState()
+
+    def update(self, delta_time: int, game: "TetrisGame") -> None:
+        """Update demo mode.
+
+        AI makes moves at human-like pace. Also handles automatic
+        piece falling like normal gameplay.
+
+        Args:
+            delta_time: Time elapsed since last update in milliseconds
+            game: The TetrisGame instance to update
+        """
+        # Initialize AI if needed
+        if self.ai is None:
+            # Import here to avoid circular dependencies
+            from src.demo_ai import DemoAI  # pylint: disable=import-outside-toplevel
+
+            self.ai = DemoAI(game)
+
+        # AI decision making
+        self.move_timer += delta_time
+        ai_delay = self.ai.get_movement_delay()
+
+        if self.move_timer >= ai_delay:
+            self.move_timer = 0
+            self.ai.make_next_move()
+
+        # Auto-fall (same as PlayingState)
+        game.fall_time += delta_time
+        if game.fall_time >= game.fall_speed:
+            game.fall_time = 0
+            if not game.move_piece(0, 1):
+                game.lock_piece()
+
+    def draw(self, game: "TetrisGame") -> None:
+        """Draw demo mode overlay.
+
+        Renders a semi-transparent overlay at the top with "DEMO MODE"
+        text and instructions to start playing.
+
+        Args:
+            game: The TetrisGame instance providing screen and rendering context
+        """
+        # Semi-transparent overlay at top
+        overlay = pygame.Surface((game.config.SCREEN_WIDTH, 100))
+        overlay.set_alpha(200)
+        overlay.fill(game.config.BLACK)
+        game.screen.blit(overlay, (0, 0))
+
+        # Demo mode text
+        demo_text = game.font.render("DEMO MODE", True, game.config.CYAN)
+        prompt_text = game.small_font.render("Press any key to play", True, game.config.WHITE)
+
+        game.screen.blit(
+            demo_text,
+            (game.config.SCREEN_WIDTH // 2 - demo_text.get_width() // 2, 20),
+        )
+        game.screen.blit(
+            prompt_text,
+            (game.config.SCREEN_WIDTH // 2 - prompt_text.get_width() // 2, 65),
         )

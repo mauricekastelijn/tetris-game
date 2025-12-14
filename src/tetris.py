@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 import pygame
 
 from src.config import GameConfig
-from src.game_states import GameOverState, GameState, LineClearingState, PlayingState
+from src.game_states import DemoState, GameOverState, GameState, LineClearingState, PlayingState
 from src.tetromino import Tetromino
 
 # Initialize Pygame
@@ -135,8 +135,11 @@ class TetrisGame:
         # Settings
         self.show_ghost = True
 
-        # State pattern
-        self.state: GameState = PlayingState()
+        # State pattern - start in demo mode if configured
+        if self.config.DEMO_AUTO_START:
+            self.state: GameState = DemoState()
+        else:
+            self.state: GameState = PlayingState()
 
         # Initialize first pieces
         self.next_piece = self.get_random_piece()
@@ -453,8 +456,8 @@ class TetrisGame:
                     - (self.level - 1) * self.config.LEVEL_SPEED_DECREASE,
                 )
 
-            # Transition to line clearing state
-            self.state = LineClearingState()
+            # Transition to line clearing state, preserving current state
+            self.state = LineClearingState(previous_state=self.state)
 
     def finish_clearing_animation(self) -> None:
         """Complete the line clearing animation and remove lines from grid.
@@ -815,6 +818,7 @@ class TetrisGame:
             "C: Hold",
             "P: Pause",
             "G: Toggle Ghost",
+            "D: Demo Mode",
             "ESC: Quit",
         ]
 

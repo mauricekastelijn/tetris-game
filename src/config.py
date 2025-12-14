@@ -64,6 +64,21 @@ class GameConfig:  # pylint: disable=too-few-public-methods
     COMBO_FONT_SCALE_MAX = 1.8  # Maximum scale factor for animation
     COMBO_Y_OFFSET = 30  # Vertical offset from grid top (lowered to avoid clipping)
 
+    # Demo mode settings
+    # These timing values are tuned to create human-like, watchable AI gameplay:
+    # - Fast enough to be engaging (not tedious to watch)
+    # - Slow enough to see individual moves (not instantaneous robot play)
+    # - Realistic pauses between actions (mimics human decision-making)
+    DEMO_AUTO_START = True  # Auto-start on game launch
+    DEMO_AFTER_GAME_OVER = True  # Auto-start after game over
+    DEMO_GAME_OVER_DELAY = 3000  # ms to wait before starting demo after game over
+    DEMO_MOVE_DELAY = 150  # ms between AI decisions - allows viewers to follow logic
+    DEMO_ROTATION_DELAY = 50  # ms between rotations - visible but smooth
+    DEMO_MOVE_DELAY_H = 30  # ms between horizontal moves - quick lateral adjustments
+    DEMO_DROP_DELAY = 100  # ms pause before initiating drop - shows "decision made"
+    DEMO_FAST_DROP_DELAY = 30  # ms between soft drops - rapid but controlled descent
+    DEMO_SLIDE_BONUS = 10  # Score bonus for advanced last-moment insertions
+
     # Colors
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)

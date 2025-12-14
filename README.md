@@ -14,7 +14,28 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - 👻 Ghost piece preview (toggle with 'G') + hold piece system
 - ✨ Animated line clearing + 3D block rendering
 - 📈 Progressive difficulty + advanced scoring (single: 100×level, Tetris: 800×level)
-- 🎮 Full keyboard controls (←→↓↑ SPACE C G R ESC)
+- 🤖 **AI-powered demo mode** (attract mode) - watch the AI play strategically
+- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R ESC)
+
+### Demo Mode (Attract Mode)
+
+The game features an auto-playing demo mode that showcases strategic AI gameplay:
+
+- **Auto-starts** when you launch the game
+- **Demonstrates** advanced techniques (line clears, hold piece usage, strategic placement)
+- **Press any key** to exit demo and start playing
+- **Press 'D' during gameplay** to manually enter demo mode
+- Automatically starts after game over (after 3-second delay)
+
+The AI evaluates all possible placements using heuristics including:
+
+- Line clear opportunities (heavily prioritized)
+- Board height minimization
+- Hole avoidance
+- Surface smoothness
+- Strategic hold piece usage
+
+Perfect for new players learning the game or as an idle attract mode!
 
 ## 🚀 Quick Start
 
@@ -82,6 +103,21 @@ game.run()
 ```
 
 **Configurable:** Display settings, grid size, timing, scoring, colors, shapes. See `GameConfig` class for all options.
+
+### Demo Mode Configuration
+
+Customize demo mode behavior:
+
+```python
+class CustomDemoConfig(GameConfig):
+    DEMO_AUTO_START = False  # Disable auto-start
+    DEMO_AFTER_GAME_OVER = True  # Keep auto-start after game over
+    DEMO_GAME_OVER_DELAY = 5000  # Wait 5 seconds before demo starts
+    DEMO_MOVE_DELAY = 100  # Faster AI decision-making (default: 150ms)
+
+game = TetrisGame(CustomDemoConfig)
+game.run()
+```
 
 ## 📦 Distribution
 
