@@ -114,13 +114,22 @@ class DemoAI:
 
         # Check for line clears
         lines_cleared = 0
+        lines_with_powerups = []
         for y in range(self.game.config.GRID_HEIGHT):
             if all(grid[y][col] is not None for col in range(self.game.config.GRID_WIDTH)):
                 lines_cleared += 1
+                lines_with_powerups.append(y)
 
         # Reward line clears heavily
         line_clear_scores = {1: 100, 2: 300, 3: 500, 4: 800}
         score += line_clear_scores.get(lines_cleared, 0)
+
+        # Bonus for clearing lines with power-ups
+        if self.game.config.CHARGED_BLOCKS_ENABLED and lines_cleared > 0:
+            for line_y in lines_with_powerups:
+                powerups_in_line = self.game.powerup_manager.get_powerups_in_line(line_y)
+                # Award bonus points for each power-up in cleared line
+                score += len(powerups_in_line) * 50
 
         # Calculate grid metrics
         heights = self._get_column_heights(grid)

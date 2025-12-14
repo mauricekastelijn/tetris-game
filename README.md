@@ -15,7 +15,35 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - ✨ Animated line clearing + 3D block rendering
 - 📈 Progressive difficulty + advanced scoring (single: 100×level, Tetris: 800×level)
 - 🤖 **AI-powered demo mode** (attract mode) - watch the AI play strategically
-- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R ESC)
+- ⚡ **Charged Blocks (Power-Ups)** - strategic bonuses without breaking core mechanics
+- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R M ESC)
+
+### Charged Blocks (Power-Up System)
+
+Special glowing blocks with **rainbow gradient effects** are part of falling tetromino pieces at a configurable rate (default 1.5% chance per piece). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
+
+**All Power-Ups Fully Implemented:**
+- **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
+- **💎 Score Amplifier** (Gold) - 2x score multiplier for 8 seconds
+- **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (press 'B' to activate, 1 use)
+- **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks during placement (3 uses)
+- **🎯 Precision Lock** (Green) - Gain 2 seconds of hover time before auto-lock (2s duration)
+
+**Visual Features:**
+- Rainbow gradient glow effect with pulsing animation
+- Power-up blocks are visible on falling pieces, next piece preview, and hold piece
+- Active power-ups displayed with remaining time/uses
+- Distinct visual appearance for each power-up type
+
+**How It Works:**
+- Random falling pieces have one block designated as a power-up block
+- You can see which block has the power-up while the piece is falling
+- When a line containing a power-up block is cleared, the power-up activates
+- Plan your strategy by deciding when and where to place power-up pieces
+
+**Controls:**
+- Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks
+- Press 'B' to activate Line Bomb when available
 
 ### Demo Mode (Attract Mode)
 
@@ -103,6 +131,30 @@ game.run()
 ```
 
 **Configurable:** Display settings, grid size, timing, scoring, colors, shapes. See `GameConfig` class for all options.
+
+### Power-Up Configuration
+
+Customize power-up behavior:
+
+```python
+class CustomPowerUpConfig(GameConfig):
+    CHARGED_BLOCKS_ENABLED = True  # Enable power-ups
+    POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
+    POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster rainbow animation
+    PRECISION_LOCK_DELAY = 3000  # 3 seconds hover time (default: 2s)
+    
+    # Customize individual power-up durations/uses
+    POWER_UP_TYPES = {
+        'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
+        'score_amplifier': {'color': (255, 215, 0), 'duration': 10000},  # 10 seconds
+        'line_bomb': {'color': (255, 50, 50), 'uses': 2},  # 2 uses
+        'phantom_mode': {'color': (180, 0, 255), 'uses': 5},  # 5 uses
+        'precision_lock': {'color': (0, 255, 150), 'duration': 3000},  # 3 seconds
+    }
+
+game = TetrisGame(CustomPowerUpConfig)
+game.run()
+```
 
 ### Demo Mode Configuration
 

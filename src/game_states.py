@@ -57,7 +57,8 @@ class PlayingState(GameState):
         """Handle input during active gameplay.
 
         Processes keyboard input for piece movement, rotation, dropping,
-        holding, ghost piece toggle, pause, demo mode, and config menu.
+        holding, ghost piece toggle, pause, demo mode, config menu, and
+        line bomb power-up activation.
 
         Args:
             event: Pygame KEYDOWN event
@@ -73,6 +74,7 @@ class PlayingState(GameState):
             P: Pause game
             D: Enter demo mode
             M: Open configuration menu
+            B: Activate Line Bomb (if available)
         """
         if event.key == pygame.K_LEFT:
             game.move_piece(-1, 0)
@@ -98,12 +100,18 @@ class PlayingState(GameState):
         elif event.key == pygame.K_m:
             # Open configuration menu
             game.state = ConfigMenuState()
+        elif event.key == pygame.K_b:
+            # Activate Line Bomb if available
+            if game.powerup_manager.is_active("line_bomb"):
+                if game.powerup_manager.use_powerup("line_bomb"):
+                    game._clear_bottom_line()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
 
         Handles automatic piece falling based on fall speed.
-        When a piece can't fall further, it locks into place.
+        When a piece can't fall further, it locks into place after
+        a delay if precision lock is active.
 
         Args:
             delta_time: Time elapsed since last update in milliseconds
@@ -111,10 +119,31 @@ class PlayingState(GameState):
         """
         # Auto-fall
         game.fall_time += delta_time
-        if game.fall_time >= game.fall_speed:
+
+        # Apply time dilator effect (slows fall speed by 50%)
+        effective_fall_speed = game.fall_speed
+        if game.powerup_manager.is_active("time_dilator"):
+            effective_fall_speed *= 2  # Double the time needed = 50% slower
+
+        if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
-                game.lock_piece()
+                # Piece has landed
+                if not game.piece_has_landed:
+                    game.piece_has_landed = True
+                    game.lock_delay_timer = 0
+
+                # Check if precision lock is active
+                if game.powerup_manager.is_active("precision_lock"):
+                    game.lock_delay_timer += effective_fall_speed
+                    if game.lock_delay_timer >= game.config.PRECISION_LOCK_DELAY:
+                        game.lock_piece()
+                else:
+                    game.lock_piece()
+            else:
+                # Piece moved down, reset landing state
+                game.piece_has_landed = False
+                game.lock_delay_timer = 0
 
     def draw(self, game: "TetrisGame") -> None:
         """No additional drawing needed for playing state.
@@ -381,10 +410,31 @@ class DemoState(GameState):
 
         # Auto-fall (same as PlayingState)
         game.fall_time += delta_time
-        if game.fall_time >= game.fall_speed:
+
+        # Apply time dilator effect (slows fall speed by 50%)
+        effective_fall_speed = game.fall_speed
+        if game.powerup_manager.is_active("time_dilator"):
+            effective_fall_speed *= 2  # Double the time needed = 50% slower
+
+        if game.fall_time >= effective_fall_speed:
             game.fall_time = 0
             if not game.move_piece(0, 1):
-                game.lock_piece()
+                # Piece has landed
+                if not game.piece_has_landed:
+                    game.piece_has_landed = True
+                    game.lock_delay_timer = 0
+
+                # Check if precision lock is active
+                if game.powerup_manager.is_active("precision_lock"):
+                    game.lock_delay_timer += effective_fall_speed
+                    if game.lock_delay_timer >= game.config.PRECISION_LOCK_DELAY:
+                        game.lock_piece()
+                else:
+                    game.lock_piece()
+            else:
+                # Piece moved down, reset landing state
+                game.piece_has_landed = False
+                game.lock_delay_timer = 0
 
     def draw(self, game: "TetrisGame") -> None:
         """Draw demo mode overlay.
