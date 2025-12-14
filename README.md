@@ -28,6 +28,7 @@ The game features an auto-playing demo mode that showcases strategic AI gameplay
 - Automatically starts after game over (after 3-second delay)
 
 The AI evaluates all possible placements using heuristics including:
+
 - Line clear opportunities (heavily prioritized)
 - Board height minimization
 - Hole avoidance
@@ -113,7 +114,7 @@ class CustomDemoConfig(GameConfig):
     DEMO_AFTER_GAME_OVER = True  # Keep auto-start after game over
     DEMO_GAME_OVER_DELAY = 5000  # Wait 5 seconds before demo starts
     DEMO_MOVE_DELAY = 100  # Faster AI decision-making (default: 150ms)
-    
+
 game = TetrisGame(CustomDemoConfig)
 game.run()
 ```

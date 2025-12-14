@@ -1068,7 +1068,7 @@ class TestDemoMode:
             # The placement should be valid (not create impossible situations)
             # AI should prefer moves that clear lines when available
             lines_complete = sum(1 for row in test_grid if all(cell is not None for cell in row))
-            
+
             # With this setup, the horizontal I piece can complete the line
             # If rotation is 0 or 2 (horizontal) and it's placed at the gap, it should clear
             if rotation in [0, 2] and 6 <= x <= 6:  # Starting position for 4-block piece
