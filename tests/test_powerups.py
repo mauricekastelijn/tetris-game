@@ -68,7 +68,7 @@ class TestPowerUpManager:
         manager = PowerUpManager(GameConfig)
         manager.add_powerup_block(2, 5, "time_dilator")
         manager.add_powerup_block(4, 5, "score_amplifier")
-        manager.add_powerup_block(6, 7, "line_bomb")
+        manager.add_powerup_block(6, 7, "time_dilator")
         
         powerups = manager.get_powerups_in_line(5)
         assert len(powerups) == 2
@@ -77,33 +77,33 @@ class TestPowerUpManager:
         
         powerups = manager.get_powerups_in_line(7)
         assert len(powerups) == 1
-        assert "line_bomb" in powerups
+        assert "time_dilator" in powerups
 
     def test_remove_powerups_in_lines(self) -> None:
         """Test removing power-ups from cleared lines"""
         manager = PowerUpManager(GameConfig)
         manager.add_powerup_block(2, 5, "time_dilator")
         manager.add_powerup_block(4, 5, "score_amplifier")
-        manager.add_powerup_block(6, 7, "line_bomb")
-        manager.add_powerup_block(8, 10, "phantom_mode")
+        manager.add_powerup_block(6, 7, "time_dilator")
+        manager.add_powerup_block(8, 10, "score_amplifier")
         
         activated = manager.remove_powerups_in_lines([5, 7])
         
         assert len(activated) == 3
         assert "time_dilator" in activated
         assert "score_amplifier" in activated
-        assert "line_bomb" in activated
+        assert activated.count("time_dilator") == 2
         
         # Only block at y=10 should remain
         assert len(manager.powerup_blocks) == 1
-        assert manager.powerup_blocks[0] == (8, 10, "phantom_mode")
+        assert manager.powerup_blocks[0] == (8, 10, "score_amplifier")
 
     def test_shift_powerups_down(self) -> None:
         """Test shifting power-ups down after line clears"""
         manager = PowerUpManager(GameConfig)
         manager.add_powerup_block(2, 3, "time_dilator")
         manager.add_powerup_block(4, 8, "score_amplifier")
-        manager.add_powerup_block(6, 15, "line_bomb")
+        manager.add_powerup_block(6, 15, "time_dilator")
         
         # Clear lines 5 and 10
         manager.shift_powerups_down([5, 10])
@@ -115,7 +115,7 @@ class TestPowerUpManager:
         assert (4, 9, "score_amplifier") in manager.powerup_blocks
         
         # Block at y=15 is below both lines, no shift (already below cleared lines)
-        assert (6, 15, "line_bomb") in manager.powerup_blocks
+        assert (6, 15, "time_dilator") in manager.powerup_blocks
 
     def test_activate_duration_powerup(self) -> None:
         """Test activating duration-based power-up"""
@@ -124,14 +124,6 @@ class TestPowerUpManager:
         
         assert "time_dilator" in manager.active_powerups
         assert manager.active_powerups["time_dilator"] == 10000  # 10 seconds
-
-    def test_activate_use_powerup(self) -> None:
-        """Test activating use-based power-up"""
-        manager = PowerUpManager(GameConfig)
-        manager.activate_powerup("line_bomb")
-        
-        assert "line_bomb" in manager.active_powerups
-        assert manager.active_powerups["line_bomb"] == 1  # 1 use
 
     def test_activate_multiple_same_powerup(self) -> None:
         """Test activating same power-up multiple times stacks"""
@@ -154,15 +146,6 @@ class TestPowerUpManager:
         manager.update(6000)
         assert "time_dilator" not in manager.active_powerups
 
-    def test_update_use_powerups(self) -> None:
-        """Test that use-based power-ups don't decay with time"""
-        manager = PowerUpManager(GameConfig)
-        manager.activate_powerup("line_bomb")
-        
-        manager.update(10000)
-        assert "line_bomb" in manager.active_powerups
-        assert manager.active_powerups["line_bomb"] == 1
-
     def test_is_active(self) -> None:
         """Test checking if power-up is active"""
         manager = PowerUpManager(GameConfig)
@@ -175,42 +158,18 @@ class TestPowerUpManager:
         manager.update(15000)
         assert not manager.is_active("time_dilator")
 
-    def test_use_powerup(self) -> None:
-        """Test using a use-based power-up"""
-        manager = PowerUpManager(GameConfig)
-        manager.activate_powerup("phantom_mode")  # 3 uses
-        
-        assert manager.use_powerup("phantom_mode")
-        assert manager.active_powerups["phantom_mode"] == 2
-        
-        assert manager.use_powerup("phantom_mode")
-        assert manager.active_powerups["phantom_mode"] == 1
-        
-        assert manager.use_powerup("phantom_mode")
-        assert "phantom_mode" not in manager.active_powerups
-        
-        # Should fail when no uses left
-        assert not manager.use_powerup("phantom_mode")
-
-    def test_use_duration_powerup_fails(self) -> None:
-        """Test that using duration-based power-up fails"""
-        manager = PowerUpManager(GameConfig)
-        manager.activate_powerup("time_dilator")
-        
-        assert not manager.use_powerup("time_dilator")
-
     def test_get_active_powerups_display(self) -> None:
         """Test getting display information for active power-ups"""
         manager = PowerUpManager(GameConfig)
         manager.activate_powerup("time_dilator")
-        manager.activate_powerup("line_bomb")
+        manager.activate_powerup("score_amplifier")
         
         display_info = manager.get_active_powerups_display()
         assert len(display_info) == 2
         
         # Check format
         for powerup_type, display_text, color in display_info:
-            assert powerup_type in ["time_dilator", "line_bomb"]
+            assert powerup_type in ["time_dilator", "score_amplifier"]
             assert isinstance(display_text, str)
             assert isinstance(color, tuple)
             assert len(color) == 3

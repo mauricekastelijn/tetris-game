@@ -22,8 +22,11 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 
 Special glowing blocks spawn within the grid at a configurable rate (default 1.5%). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
 
+**Currently Implemented:**
 - **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
 - **💎 Score Amplifier** (Gold) - 2x score multiplier for 8 seconds
+
+**Future Enhancements:**
 - **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (1 use)
 - **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks (3 uses)
 - **🎯 Precision Lock** (Green) - Gain 2 seconds of hover time before auto-lock (2s duration)
@@ -127,13 +130,10 @@ class CustomPowerUpConfig(GameConfig):
     POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
     POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster glow animation
     
-    # Customize individual power-up durations/uses
+    # Customize individual power-up durations
     POWER_UP_TYPES = {
         'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
         'score_amplifier': {'color': (255, 215, 0), 'duration': 10000},  # 10 seconds
-        'line_bomb': {'color': (255, 50, 50), 'uses': 2},  # 2 uses
-        'phantom_mode': {'color': (180, 0, 255), 'uses': 5},  # 5 uses
-        'precision_lock': {'color': (0, 255, 150), 'duration': 3000},  # 3 seconds
     }
 
 game = TetrisGame(CustomPowerUpConfig)

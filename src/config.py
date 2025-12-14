@@ -133,7 +133,8 @@ class GameConfig:
     POWER_UP_TYPES = {
         "time_dilator": {"color": (0, 150, 255), "duration": 10000},  # Blue, 10 seconds
         "score_amplifier": {"color": (255, 215, 0), "duration": 8000},  # Gold, 8 seconds
-        "line_bomb": {"color": (255, 50, 50), "uses": 1},  # Red, 1 use
-        "phantom_mode": {"color": (180, 0, 255), "uses": 3},  # Purple, 3 uses
-        "precision_lock": {"color": (0, 255, 150), "duration": 2000},  # Green, 2 seconds
+        # Future power-ups (not yet fully implemented):
+        # "line_bomb": {"color": (255, 50, 50), "uses": 1},  # Red, 1 use
+        # "phantom_mode": {"color": (180, 0, 255), "uses": 3},  # Purple, 3 uses
+        # "precision_lock": {"color": (0, 255, 150), "duration": 2000},  # Green, 2 seconds
     }
