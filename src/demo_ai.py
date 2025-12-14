@@ -355,67 +355,81 @@ class DemoAI:
             self.current_piece_id = piece_id
             self.move_phase = "planning"
 
-        # Planning phase: decide what to do
-        if self.move_phase == "planning":
-            self.target_x, self.target_rotation, self.target_use_hold = self.find_best_move()
-            self.rotation_count = 0
+        # Execute appropriate phase handler
+        phase_handlers = {
+            "planning": self._handle_planning_phase,
+            "holding": self._handle_holding_phase,
+            "rotating": self._handle_rotating_phase,
+            "moving": self._handle_moving_phase,
+            "dropping": self._handle_dropping_phase,
+            "waiting": self._handle_waiting_phase,
+        }
 
-            # If we should use hold, do that first
-            if self.target_use_hold:
-                self.move_phase = "holding"
-                self.movement_delay = self.game.config.DEMO_MOVE_DELAY
-            else:
-                self.move_phase = "rotating"
-                self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
+        handler = phase_handlers.get(self.move_phase)
+        if handler:
+            handler()
 
-        # Holding phase: use the hold feature
-        elif self.move_phase == "holding":
-            self.game.hold_current_piece()
-            # After holding, we need to re-plan for the new piece
-            self.move_phase = "planning"
-            self.current_piece_id = id(self.game.current_piece) if self.game.current_piece else None
+    def _handle_planning_phase(self) -> None:
+        """Handle the planning phase - decide what move to make."""
+        self.target_x, self.target_rotation, self.target_use_hold = self.find_best_move()
+        self.rotation_count = 0
+
+        # If we should use hold, do that first
+        if self.target_use_hold:
+            self.move_phase = "holding"
+            self.movement_delay = self.game.config.DEMO_MOVE_DELAY
+        else:
+            self.move_phase = "rotating"
+            self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
+
+    def _handle_holding_phase(self) -> None:
+        """Handle the holding phase - use the hold feature."""
+        self.game.hold_current_piece()
+        # After holding, we need to re-plan for the new piece
+        self.move_phase = "planning"
+        self.current_piece_id = id(self.game.current_piece) if self.game.current_piece else None
+        self.movement_delay = self.game.config.DEMO_MOVE_DELAY
+
+    def _handle_rotating_phase(self) -> None:
+        """Handle the rotating phase - rotate piece to target rotation."""
+        if self.rotation_count < self.target_rotation:
+            self.game.rotate_piece()
+            self.rotation_count += 1
+            self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
+        else:
+            self.move_phase = "moving"
+            self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
+
+    def _handle_moving_phase(self) -> None:
+        """Handle the moving phase - move horizontally to target position."""
+        current_x = self.game.current_piece.x
+        if current_x < self.target_x:
+            self.game.move_piece(1, 0)
+            self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
+        elif current_x > self.target_x:
+            self.game.move_piece(-1, 0)
+            self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
+        else:
+            self.move_phase = "dropping"
+            self.movement_delay = self.game.config.DEMO_DROP_DELAY
+
+    def _handle_dropping_phase(self) -> None:
+        """Handle the dropping phase - drop piece quickly."""
+        # Use soft drop to move piece down faster while still scoring
+        if self.game.move_piece(0, 1):
+            # Piece moved down successfully, add soft drop score
+            self.game.score += self.game.config.SOFT_DROP_BONUS
+            self.movement_delay = self.game.config.DEMO_FAST_DROP_DELAY
+        else:
+            # Can't move down, piece will lock on next auto-fall
+            # Wait for the piece to lock
+            self.move_phase = "waiting"
             self.movement_delay = self.game.config.DEMO_MOVE_DELAY
 
-        # Rotating phase: rotate piece to target rotation
-        elif self.move_phase == "rotating":
-            if self.rotation_count < self.target_rotation:
-                self.game.rotate_piece()
-                self.rotation_count += 1
-                self.movement_delay = self.game.config.DEMO_ROTATION_DELAY
-            else:
-                self.move_phase = "moving"
-                self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
-
-        # Moving phase: move horizontally to target position
-        elif self.move_phase == "moving":
-            current_x = self.game.current_piece.x
-            if current_x < self.target_x:
-                self.game.move_piece(1, 0)
-                self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
-            elif current_x > self.target_x:
-                self.game.move_piece(-1, 0)
-                self.movement_delay = self.game.config.DEMO_MOVE_DELAY_H
-            else:
-                self.move_phase = "dropping"
-                self.movement_delay = self.game.config.DEMO_DROP_DELAY
-
-        # Dropping phase: piece is positioned, now drop it quickly
-        elif self.move_phase == "dropping":
-            # Use soft drop to move piece down faster while still scoring
-            if self.game.move_piece(0, 1):
-                # Piece moved down successfully, add soft drop score
-                self.game.score += self.game.config.SOFT_DROP_BONUS
-                self.movement_delay = self.game.config.DEMO_FAST_DROP_DELAY
-            else:
-                # Can't move down, piece will lock on next auto-fall
-                # Wait for the piece to lock
-                self.move_phase = "waiting"
-                self.movement_delay = self.game.config.DEMO_MOVE_DELAY
-
-        # Waiting phase: waiting for piece to lock and new piece to spawn
-        elif self.move_phase == "waiting":
-            # Just wait until current piece changes or becomes None
-            self.movement_delay = self.game.config.DEMO_MOVE_DELAY
+    def _handle_waiting_phase(self) -> None:
+        """Handle the waiting phase - wait for piece to lock and new piece to spawn."""
+        # Just wait until current piece changes or becomes None
+        self.movement_delay = self.game.config.DEMO_MOVE_DELAY
 
     def get_movement_delay(self) -> int:
         """Get the delay for the current movement phase.

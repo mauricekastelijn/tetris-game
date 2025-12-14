@@ -1005,7 +1005,7 @@ class TestDemoMode:
         piece = game_no_demo.current_piece
 
         # Should return a score and grid for valid placement
-        score, grid = ai.evaluate_placement(piece, piece.x, 0)
+        score, _ = ai.evaluate_placement(piece, piece.x, 0)
         assert isinstance(score, float)
         assert score > float("-inf")
 
