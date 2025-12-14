@@ -162,11 +162,29 @@ class TetrisGame:
 
         Selects one of the seven standard tetromino types
         with equal probability and creates a new instance.
+        May assign power-up to one random block if enabled.
 
         Returns:
-            Newly created Tetromino of random type
+            Newly created Tetromino of random type, possibly with power-up
         """
-        return Tetromino(random.choice(list(self.config.SHAPES.keys())), self.config)
+        piece = Tetromino(random.choice(list(self.config.SHAPES.keys())), self.config)
+        
+        # Assign power-up to one random block if enabled
+        if self.powerup_manager.should_spawn_powerup():
+            # Get all block positions in the piece (local coordinates)
+            blocks = []
+            for y, row in enumerate(piece.shape):
+                for x, cell in enumerate(row):
+                    if cell:
+                        blocks.append((x, y))
+            
+            if blocks:
+                # Choose one random block to be a power-up
+                local_x, local_y = random.choice(blocks)
+                powerup_type = self.powerup_manager.get_random_powerup_type()
+                piece.powerup_blocks[(local_x, local_y)] = powerup_type
+        
+        return piece
 
     def spawn_new_piece(self) -> None:
         """Spawn a new piece at the top of the grid.
@@ -362,12 +380,12 @@ class TetrisGame:
         then initiates line clearing. If no lines are cleared,
         spawns the next piece immediately and resets the combo.
 
-        Power-ups may spawn on placed blocks based on configuration.
+        Power-ups that were part of the falling piece are transferred to the grid.
         Consumes one use of phantom mode if active.
 
         Side effects:
             - Updates self.grid with current piece's blocks
-            - May spawn power-ups on placed blocks
+            - Transfers power-ups from piece to grid
             - Consumes phantom mode use if active
             - Calls clear_lines() to check for completed lines
             - If no lines cleared, resets combo and spawns new piece
@@ -384,14 +402,20 @@ class TetrisGame:
         if self.powerup_manager.is_active("phantom_mode"):
             self.powerup_manager.use_powerup("phantom_mode")
             
-        for x, y in self.current_piece.get_blocks():
-            if y >= 0:
-                self.grid[y][x] = self.current_piece.color
-                
-                # Spawn power-ups on placed blocks
-                if self.powerup_manager.should_spawn_powerup():
-                    powerup_type = self.powerup_manager.get_random_powerup_type()
-                    self.powerup_manager.add_powerup_block(x, y, powerup_type)
+        # Transfer blocks and power-ups from piece to grid
+        for local_y, row in enumerate(self.current_piece.shape):
+            for local_x, cell in enumerate(row):
+                if cell:
+                    grid_x = self.current_piece.x + local_x
+                    grid_y = self.current_piece.y + local_y
+                    
+                    if grid_y >= 0:
+                        self.grid[grid_y][grid_x] = self.current_piece.color
+                        
+                        # Transfer power-up if this block has one
+                        if (local_x, local_y) in self.current_piece.powerup_blocks:
+                            powerup_type = self.current_piece.powerup_blocks[(local_x, local_y)]
+                            self.powerup_manager.add_powerup_block(grid_x, grid_y, powerup_type)
 
         # Reset lock delay timer
         self.lock_delay_timer = 0
@@ -684,11 +708,23 @@ class TetrisGame:
         """Draw the currently falling piece.
 
         Helper method to reduce complexity of draw_grid.
+        Also draws power-up glow effects for any blocks with power-ups.
         """
         if self.current_piece:
-            for x, y in self.current_piece.get_blocks():
-                if y >= 0:
-                    self.draw_block(x, y, self.current_piece.color)
+            # Draw each block
+            for local_y, row in enumerate(self.current_piece.shape):
+                for local_x, cell in enumerate(row):
+                    if cell:
+                        grid_x = self.current_piece.x + local_x
+                        grid_y = self.current_piece.y + local_y
+                        
+                        if grid_y >= 0:
+                            self.draw_block(grid_x, grid_y, self.current_piece.color)
+                            
+                            # Draw power-up glow if this block has a power-up
+                            if (local_x, local_y) in self.current_piece.powerup_blocks:
+                                powerup_type = self.current_piece.powerup_blocks[(local_x, local_y)]
+                                self._draw_powerup_glow(grid_x, grid_y, powerup_type)
 
     def _draw_powerup_glow(self, x: int, y: int, powerup_type: str) -> None:
         """Draw animated rainbow gradient glow effect around a power-up block.
@@ -737,6 +773,51 @@ class TetrisGame:
         screen_x = self.config.GRID_X + x * self.config.BLOCK_SIZE + 1
         screen_y = self.config.GRID_Y + y * self.config.BLOCK_SIZE + 1
         self.screen.blit(glow_surface, (screen_x, screen_y))
+
+    def _draw_preview_powerup_glow(self, x: int, y: int) -> None:
+        """Draw rainbow gradient glow for power-up in preview boxes.
+
+        Args:
+            x: Screen X coordinate (in pixels)
+            y: Screen Y coordinate (in pixels)
+        """
+        if not self.config.CHARGED_BLOCKS_ENABLED:
+            return
+
+        # Calculate pulsing alpha and rainbow hue based on time
+        time_ms = pygame.time.get_ticks()
+        pulse_speed = self.config.POWER_UP_GLOW_ANIMATION_SPEED
+        pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms * pulse_speed / 10).x) / 2
+        alpha = int(100 + 155 * pulse)
+        
+        # Rainbow gradient effect
+        hue = (time_ms / 20) % 360
+        
+        # Convert HSV to RGB for rainbow effect
+        import colorsys
+        r, g, b = colorsys.hsv_to_rgb(hue / 360.0, 1.0, 1.0)
+        rainbow_color = (int(r * 255), int(g * 255), int(b * 255))
+
+        # Create glow surface
+        glow_surface = pygame.Surface(
+            (self.config.BLOCK_SIZE - 2, self.config.BLOCK_SIZE - 2),
+            pygame.SRCALPHA
+        )
+        
+        # Draw rainbow border glow
+        for layer in range(2):  # Fewer layers for preview
+            border_width = 2 - layer
+            layer_alpha = int(alpha * (1.0 - layer * 0.3))
+            glow_color_with_alpha = (*rainbow_color, layer_alpha)
+            pygame.draw.rect(
+                glow_surface,
+                glow_color_with_alpha,
+                glow_surface.get_rect().inflate(-layer * 2, -layer * 2),
+                border_width
+            )
+
+        # Blit to screen at exact position
+        self.screen.blit(glow_surface, (x, y))
 
     def draw_grid(self) -> None:
         """Draw the game grid with background, placed blocks, and active pieces.
@@ -797,7 +878,8 @@ class TetrisGame:
         """Draw a piece preview box for next or hold piece.
 
         Renders a labeled box with the piece centered inside, used
-        for displaying next piece and hold piece.
+        for displaying next piece and hold piece. Shows power-up glow
+        effects for any blocks with power-ups.
 
         Args:
             piece: Tetromino to display (None shows empty box)
@@ -836,6 +918,13 @@ class TetrisGame:
                             self.config.BLOCK_SIZE - 2,
                         )
                         pygame.draw.rect(self.screen, piece.color, rect)
+                        
+                        # Draw power-up glow if this block has a power-up
+                        if (col_idx, row_idx) in piece.powerup_blocks:
+                            self._draw_preview_powerup_glow(
+                                offset_x + col_idx * self.config.BLOCK_SIZE,
+                                offset_y + row_idx * self.config.BLOCK_SIZE
+                            )
 
     def draw_ui(self) -> None:
         """Draw the user interface elements.

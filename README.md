@@ -20,7 +20,7 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 
 ### Charged Blocks (Power-Up System)
 
-Special glowing blocks with **rainbow gradient effects** spawn within the grid at a configurable rate (default 1.5%). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
+Special glowing blocks with **rainbow gradient effects** are part of falling tetromino pieces at a configurable rate (default 1.5% chance per piece). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
 
 **All Power-Ups Fully Implemented:**
 - **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
@@ -31,8 +31,15 @@ Special glowing blocks with **rainbow gradient effects** spawn within the grid a
 
 **Visual Features:**
 - Rainbow gradient glow effect with pulsing animation
+- Power-up blocks are visible on falling pieces, next piece preview, and hold piece
 - Active power-ups displayed with remaining time/uses
 - Distinct visual appearance for each power-up type
+
+**How It Works:**
+- Random falling pieces have one block designated as a power-up block
+- You can see which block has the power-up while the piece is falling
+- When a line containing a power-up block is cleared, the power-up activates
+- Plan your strategy by deciding when and where to place power-up pieces
 
 **Controls:**
 - Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks

@@ -48,6 +48,9 @@ class Tetromino:
         self.x = config.GRID_WIDTH // 2 - len(self.shape[0]) // 2
         self.y = 0
         self.config = config
+        # Power-up blocks: dict mapping (local_x, local_y) to powerup_type
+        # Local coordinates are relative to the shape, not grid position
+        self.powerup_blocks = {}
 
     def rotate_clockwise(self) -> None:
         """Rotate the piece 90 degrees clockwise.
@@ -111,10 +114,11 @@ class Tetromino:
 
         Note:
             Shape is deep copied so modifications to the copy won't
-            affect the original.
+            affect the original. Power-up blocks are also copied.
         """
         new_piece = Tetromino(self.type, self.config)
         new_piece.shape = [row[:] for row in self.shape]
         new_piece.x = self.x
         new_piece.y = self.y
+        new_piece.powerup_blocks = dict(self.powerup_blocks)  # Copy powerup blocks
         return new_piece
