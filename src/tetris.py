@@ -9,7 +9,13 @@ from typing import List, Optional, Tuple
 import pygame
 
 from src.config import GameConfig
-from src.game_states import DemoState, GameOverState, GameState, LineClearingState, PlayingState
+from src.game_states import (
+    DemoState,
+    GameOverState,
+    GameState,
+    LineClearingState,
+    PlayingState,
+)
 from src.tetromino import Tetromino
 
 # Initialize Pygame
@@ -503,7 +509,7 @@ class TetrisGame:
         used once per piece (until it locks).
 
         Side effects:
-            - If can_hold is False, does nothing (returns early)
+            - If can_hold is False or HOLD_ENABLED is False, does nothing (returns early)
             - If hold_piece is None, stores current piece and spawns next
             - Otherwise, swaps current_piece with hold_piece
             - Sets can_hold to False (reset on next spawn)
@@ -512,6 +518,10 @@ class TetrisGame:
             Held pieces are reset to spawn position (centered at top).
             This prevents position-based exploits.
         """
+        # Check if hold feature is enabled
+        if not self.config.HOLD_ENABLED:
+            return
+
         if not self.can_hold or self.current_piece is None:
             return
 
@@ -817,6 +827,7 @@ class TetrisGame:
             "SPACE: Hard Drop",
             "C: Hold",
             "P: Pause",
+            "M: Menu",
             "G: Toggle Ghost",
             "D: Demo Mode",
             "ESC: Quit",

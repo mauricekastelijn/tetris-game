@@ -3,7 +3,7 @@ Game configuration constants and settings.
 """
 
 
-class GameConfig:  # pylint: disable=too-few-public-methods
+class GameConfig:
     """Centralized game configuration.
 
     This class contains all game constants including display settings,
@@ -113,3 +113,16 @@ class GameConfig:  # pylint: disable=too-few-public-methods
         "J": (0, 0, 255),  # BLUE
         "L": (255, 165, 0),  # ORANGE
     }
+
+    # Game settings (mutable configuration options)
+    # Difficulty levels affect initial fall speed and speed progression
+    DIFFICULTY_SETTINGS = {
+        "easy": {"initial_speed": 1500, "speed_decrease": 80, "min_speed": 200},
+        "medium": {"initial_speed": 1000, "speed_decrease": 100, "min_speed": 100},
+        "hard": {"initial_speed": 700, "speed_decrease": 120, "min_speed": 50},
+        "expert": {"initial_speed": 400, "speed_decrease": 150, "min_speed": 30},
+    }
+
+    # Feature toggles
+    HOLD_ENABLED = True  # Enable/disable hold piece feature
+    CHARGED_BLOCKS_ENABLED = False  # Enable/disable charged blocks (power-ups)

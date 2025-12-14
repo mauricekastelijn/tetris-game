@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Optional
 
 import pygame
 
+from src.config import GameConfig
+
 if TYPE_CHECKING:
     from src.demo_ai import DemoAI
     from src.tetris import TetrisGame
@@ -55,7 +57,7 @@ class PlayingState(GameState):
         """Handle input during active gameplay.
 
         Processes keyboard input for piece movement, rotation, dropping,
-        holding, ghost piece toggle, pause, and demo mode.
+        holding, ghost piece toggle, pause, demo mode, and config menu.
 
         Args:
             event: Pygame KEYDOWN event
@@ -70,6 +72,7 @@ class PlayingState(GameState):
             G: Toggle ghost piece visibility
             P: Pause game
             D: Enter demo mode
+            M: Open configuration menu
         """
         if event.key == pygame.K_LEFT:
             game.move_piece(-1, 0)
@@ -92,6 +95,9 @@ class PlayingState(GameState):
             # Enter demo mode
             game.reset_game()
             game.state = DemoState()
+        elif event.key == pygame.K_m:
+            # Open configuration menu
+            game.state = ConfigMenuState()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
@@ -407,3 +413,190 @@ class DemoState(GameState):
             prompt_text,
             (game.config.SCREEN_WIDTH // 2 - prompt_text.get_width() // 2, 65),
         )
+
+
+class ConfigMenuState(GameState):
+    """Configuration menu state.
+
+    In this state, players can modify game settings including:
+    - Difficulty level (affects fall speed)
+    - Charged Blocks feature toggle
+    - Hold Blocks feature toggle
+    """
+
+    def __init__(self) -> None:
+        """Initialize config menu state."""
+        super().__init__()
+        self.selected_option = 0
+        self.options = ["difficulty", "charged_blocks", "hold_blocks", "back"]
+        self.difficulty_levels = ["easy", "medium", "hard", "expert"]
+
+        # Get current difficulty based on fall speed
+        self.current_difficulty = "medium"  # default
+        for difficulty, settings in GameConfig.DIFFICULTY_SETTINGS.items():
+            if GameConfig.INITIAL_FALL_SPEED == settings["initial_speed"]:
+                self.current_difficulty = difficulty
+                break
+
+    def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
+        """Handle input in config menu.
+
+        Args:
+            event: Pygame KEYDOWN event
+            game: The TetrisGame instance to manipulate
+
+        Key bindings:
+            UP/DOWN: Navigate menu options
+            LEFT/RIGHT: Change selected option value
+            ENTER/SPACE: Apply changes and return to game
+            ESC: Return to game without changes
+        """
+        if event.key == pygame.K_UP:
+            self.selected_option = (self.selected_option - 1) % len(self.options)
+        elif event.key == pygame.K_DOWN:
+            self.selected_option = (self.selected_option + 1) % len(self.options)
+        elif event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+            self._change_option(event.key == pygame.K_RIGHT, game)
+        elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+            if self.options[self.selected_option] == "back":
+                self._apply_settings(game)
+                game.state = PlayingState()
+        elif event.key == pygame.K_ESCAPE:
+            game.state = PlayingState()
+
+    def _change_option(self, increase: bool, game: "TetrisGame") -> None:
+        """Change the value of the selected option.
+
+        Args:
+            increase: True to increase/enable, False to decrease/disable
+            game: The TetrisGame instance
+        """
+        option = self.options[self.selected_option]
+
+        if option == "difficulty":
+            current_idx = self.difficulty_levels.index(self.current_difficulty)
+            if increase:
+                current_idx = (current_idx + 1) % len(self.difficulty_levels)
+            else:
+                current_idx = (current_idx - 1) % len(self.difficulty_levels)
+            self.current_difficulty = self.difficulty_levels[current_idx]
+        elif option == "charged_blocks":
+            game.config.CHARGED_BLOCKS_ENABLED = not game.config.CHARGED_BLOCKS_ENABLED
+        elif option == "hold_blocks":
+            game.config.HOLD_ENABLED = not game.config.HOLD_ENABLED
+
+    def _apply_settings(self, game: "TetrisGame") -> None:
+        """Apply the current settings to the game config.
+
+        Args:
+            game: The TetrisGame instance
+        """
+        # Apply difficulty settings
+        settings = game.config.DIFFICULTY_SETTINGS[self.current_difficulty]
+        game.config.INITIAL_FALL_SPEED = settings["initial_speed"]
+        game.config.LEVEL_SPEED_DECREASE = settings["speed_decrease"]
+        game.config.MIN_FALL_SPEED = settings["min_speed"]
+
+        # Recalculate fall speed for current level
+        new_speed = (
+            game.config.INITIAL_FALL_SPEED - (game.level - 1) * game.config.LEVEL_SPEED_DECREASE
+        )
+        game.fall_speed = max(new_speed, game.config.MIN_FALL_SPEED)
+
+    def update(self, delta_time: int, game: "TetrisGame") -> None:
+        """No updates needed in config menu.
+
+        Args:
+            delta_time: Time elapsed in milliseconds (ignored)
+            game: The TetrisGame instance (ignored)
+        """
+
+    def draw(self, game: "TetrisGame") -> None:
+        """Draw configuration menu.
+
+        Renders a menu with configuration options and current values.
+
+        Args:
+            game: The TetrisGame instance providing screen and rendering context
+        """
+        # Semi-transparent overlay
+        overlay = pygame.Surface((game.config.SCREEN_WIDTH, game.config.SCREEN_HEIGHT))
+        overlay.set_alpha(230)
+        overlay.fill(game.config.BLACK)
+        game.screen.blit(overlay, (0, 0))
+
+        # Title
+        title_text = game.font.render("CONFIGURATION", True, game.config.WHITE)
+        game.screen.blit(
+            title_text,
+            (game.config.SCREEN_WIDTH // 2 - title_text.get_width() // 2, 100),
+        )
+
+        # Menu options
+        y_start = 200
+        y_spacing = 60
+
+        # Difficulty option
+        difficulty_color = game.config.CYAN if self.selected_option == 0 else game.config.WHITE
+        difficulty_text = game.small_font.render(
+            f"Difficulty: < {self.current_difficulty.upper()} >",
+            True,
+            difficulty_color,
+        )
+        game.screen.blit(
+            difficulty_text,
+            (game.config.SCREEN_WIDTH // 2 - difficulty_text.get_width() // 2, y_start),
+        )
+
+        # Charged Blocks option
+        charged_color = game.config.CYAN if self.selected_option == 1 else game.config.WHITE
+        charged_status = "ON" if game.config.CHARGED_BLOCKS_ENABLED else "OFF"
+        charged_text = game.small_font.render(
+            f"Charged Blocks: < {charged_status} >",
+            True,
+            charged_color,
+        )
+        game.screen.blit(
+            charged_text,
+            (game.config.SCREEN_WIDTH // 2 - charged_text.get_width() // 2, y_start + y_spacing),
+        )
+
+        # Hold Blocks option
+        hold_color = game.config.CYAN if self.selected_option == 2 else game.config.WHITE
+        hold_status = "ON" if game.config.HOLD_ENABLED else "OFF"
+        hold_text = game.small_font.render(
+            f"Hold Blocks: < {hold_status} >",
+            True,
+            hold_color,
+        )
+        game.screen.blit(
+            hold_text,
+            (game.config.SCREEN_WIDTH // 2 - hold_text.get_width() // 2, y_start + y_spacing * 2),
+        )
+
+        # Back option
+        back_color = game.config.CYAN if self.selected_option == 3 else game.config.WHITE
+        back_text = game.small_font.render("< APPLY & BACK >", True, back_color)
+        game.screen.blit(
+            back_text,
+            (game.config.SCREEN_WIDTH // 2 - back_text.get_width() // 2, y_start + y_spacing * 3.5),
+        )
+
+        # Instructions
+        instructions = [
+            "Use UP/DOWN to navigate",
+            "Use LEFT/RIGHT to change values",
+            "Press ENTER to apply and return",
+            "Press ESC to cancel",
+        ]
+
+        y_instructions = y_start + y_spacing * 5
+        for i, instruction in enumerate(instructions):
+            instruction_text = game.small_font.render(instruction, True, game.config.GRAY)
+            game.screen.blit(
+                instruction_text,
+                (
+                    game.config.SCREEN_WIDTH // 2 - instruction_text.get_width() // 2,
+                    y_instructions + i * 25,
+                ),
+            )
