@@ -31,8 +31,10 @@ class TestPowerUpManager:
 
     def test_spawn_chance_when_disabled(self) -> None:
         """Test that power-ups don't spawn when disabled"""
-        manager = PowerUpManager(GameConfig)
-        # CHARGED_BLOCKS_ENABLED is False by default
+        class DisabledConfig(GameConfig):
+            CHARGED_BLOCKS_ENABLED = False
+        
+        manager = PowerUpManager(DisabledConfig)
         assert not manager.should_spawn_powerup()
 
     def test_spawn_chance_when_enabled(self) -> None:
@@ -277,6 +279,76 @@ class TestTetrisGameWithPowerUps:
         # Power-up should have shifted down
         powerup = game.powerup_manager.get_powerup_at(3, game.config.GRID_HEIGHT - 2)
         assert powerup == "score_amplifier"
+
+
+class TestPowerUpOnFallingPieces:
+    """Test power-ups appearing on falling pieces"""
+
+    @pytest.fixture
+    def game(self) -> TetrisGame:
+        """Create a game instance with power-ups enabled"""
+        pygame.init()
+        game = TetrisGame(TestPowerUpConfig)
+        return game
+
+    def test_pieces_can_have_powerups(self, game: TetrisGame) -> None:
+        """Test that pieces can be generated with power-ups"""
+        # With 100% spawn chance, all pieces should have power-ups
+        piece = game.get_random_piece()
+        assert len(piece.powerup_blocks) > 0
+
+    def test_powerup_on_one_block_per_piece(self, game: TetrisGame) -> None:
+        """Test that only one block per piece has a power-up"""
+        piece = game.get_random_piece()
+        assert len(piece.powerup_blocks) == 1
+
+    def test_powerup_transferred_on_lock(self, game: TetrisGame) -> None:
+        """Test that power-ups transfer from piece to grid when locked"""
+        # Set current piece to have a power-up
+        game.current_piece.powerup_blocks[(0, 0)] = "time_dilator"
+        
+        # Position piece at bottom
+        game.current_piece.y = game.config.GRID_HEIGHT - len(game.current_piece.shape)
+        
+        # Get the grid position of the first block
+        grid_x = game.current_piece.x
+        grid_y = game.current_piece.y
+        
+        # Lock the piece
+        game.lock_piece()
+        
+        # Check that power-up was transferred to grid
+        powerup = game.powerup_manager.get_powerup_at(grid_x, grid_y)
+        assert powerup == "time_dilator"
+
+    def test_no_powerups_when_disabled(self) -> None:
+        """Test that no power-ups spawn when feature is disabled"""
+        pygame.init()
+        
+        class DisabledConfig(GameConfig):
+            CHARGED_BLOCKS_ENABLED = False
+            POWER_UP_SPAWN_CHANCE = 1.0  # High chance but disabled
+            DEMO_AUTO_START = False
+        
+        game = TetrisGame(DisabledConfig)
+        
+        # Generate several pieces
+        for _ in range(10):
+            piece = game.get_random_piece()
+            assert len(piece.powerup_blocks) == 0
+
+    def test_powerup_visible_in_next_piece(self, game: TetrisGame) -> None:
+        """Test that power-ups are visible in next piece preview"""
+        # The next piece should potentially have a power-up
+        if len(game.next_piece.powerup_blocks) > 0:
+            assert len(game.next_piece.powerup_blocks) == 1
+
+    def test_powerup_survives_piece_copy(self, game: TetrisGame) -> None:
+        """Test that power-ups are preserved when piece is copied"""
+        piece = game.get_random_piece()
+        if len(piece.powerup_blocks) > 0:
+            copied_piece = piece.copy()
+            assert copied_piece.powerup_blocks == piece.powerup_blocks
 
 
 if __name__ == "__main__":

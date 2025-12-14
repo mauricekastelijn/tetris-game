@@ -1244,7 +1244,23 @@ class TetrisGame:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        # Only quit from PlayingState, DemoState, or GameOverState
+                        # ConfigMenuState and PausedState should handle ESC themselves
+                        from src.game_states import (  # pylint: disable=import-outside-toplevel
+                            ConfigMenuState,
+                            DemoState,
+                            GameOverState,
+                            PausedState,
+                            PlayingState,
+                        )
+
+                        if isinstance(
+                            self.state, (PlayingState, DemoState, GameOverState)
+                        ):
+                            running = False
+                        else:
+                            # Let the state handle ESC (ConfigMenuState, PausedState)
+                            self.handle_input(event)
                     else:
                         self.handle_input(event)
 

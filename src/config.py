@@ -125,10 +125,10 @@ class GameConfig:
 
     # Feature toggles
     HOLD_ENABLED = True  # Enable/disable hold piece feature
-    CHARGED_BLOCKS_ENABLED = False  # Enable/disable charged blocks (power-ups)
+    CHARGED_BLOCKS_ENABLED = True  # Enable/disable charged blocks (power-ups)
 
     # Power-Up System Configuration
-    POWER_UP_SPAWN_CHANCE = 0.015  # 1.5% of blocks become charged
+    POWER_UP_SPAWN_CHANCE = 0.05  # 5% of pieces have power-up blocks (increased from 1.5%)
     POWER_UP_GLOW_ANIMATION_SPEED = 5  # Pulse effect speed
     POWER_UP_TYPES = {
         "time_dilator": {"color": (0, 150, 255), "duration": 10000},  # Blue, 10 seconds
