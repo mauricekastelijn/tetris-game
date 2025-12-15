@@ -24,6 +24,21 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - [License](#-license)
 - [Acknowledgments](#-acknowledgments)
 
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Controls](#-controls)
+- [Game Modes](#-game-modes)
+- [Power-Ups](#-power-ups)
+- [Configuration](#-configuration)
+- [Development](#-development)
+- [Distribution](#-distribution)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
+
 ## ✨ Features
 
 - 🎯 **Classic Tetris**: All 7 pieces with wall-kick rotation (SRS)
