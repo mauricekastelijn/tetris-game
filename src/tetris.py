@@ -1247,10 +1247,8 @@ class TetrisGame:
                         # Only quit from PlayingState, DemoState, or GameOverState
                         # ConfigMenuState and PausedState should handle ESC themselves
                         from src.game_states import (  # pylint: disable=import-outside-toplevel
-                            ConfigMenuState,
                             DemoState,
                             GameOverState,
-                            PausedState,
                             PlayingState,
                         )
 
