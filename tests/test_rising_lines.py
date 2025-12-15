@@ -146,7 +146,9 @@ class TestRisingLinesBasicFunctionality:
 
         # Count holes (None values)
         holes = sum(1 for cell in line if cell is None)
-        assert game_pressure.config.RISING_HOLES_MIN <= holes <= game_pressure.config.RISING_HOLES_MAX
+        assert (
+            game_pressure.config.RISING_HOLES_MIN <= holes <= game_pressure.config.RISING_HOLES_MAX
+        )
 
         # Check non-hole blocks have rising color
         for cell in line:

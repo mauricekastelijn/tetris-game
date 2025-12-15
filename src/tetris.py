@@ -14,6 +14,7 @@ from src.game_states import (
     GameOverState,
     GameState,
     LineClearingState,
+    PausedState,
     PlayingState,
 )
 from src.powerups import PowerUpManager
@@ -1101,7 +1102,8 @@ class TetrisGame:
 
         # Precision Lock: Extended lock delay before piece auto-locks
         # This is handled in the piece landing logic
-        pass
+        # No direct effects applied here
+        # Effects are handled in specific methods (falling logic, scoring, etc.)
 
     def _clear_bottom_line(self) -> None:
         """Clear the bottom-most line (Line Bomb effect).
@@ -1155,7 +1157,10 @@ class TetrisGame:
             return self.config.RISING_SURVIVAL_INTERVAL
 
         # Pressure mode: decrease interval with level
-        interval = self.config.RISING_INITIAL_INTERVAL - (self.level - 1) * self.config.RISING_INTERVAL_DECREASE
+        interval = (
+            self.config.RISING_INITIAL_INTERVAL
+            - (self.level - 1) * self.config.RISING_INTERVAL_DECREASE
+        )
         return max(interval, self.config.RISING_MIN_INTERVAL)
 
     def _generate_rising_line(self) -> List[Optional[Tuple[int, int, int]]]:
@@ -1302,7 +1307,7 @@ class TetrisGame:
 
         # Check for warning
         time_until_rise = self.rising_interval - self.rising_timer
-        if time_until_rise <= self.config.RISING_WARNING_TIME and time_until_rise > 0:
+        if 0 < time_until_rise <= self.config.RISING_WARNING_TIME:
             self.rising_warning_active = True
         else:
             self.rising_warning_active = False
@@ -1338,12 +1343,18 @@ class TetrisGame:
             if self.rising_manual_cooldown > 0:
                 progress = 1.0 - (self.rising_manual_cooldown / self.config.RISING_MANUAL_COOLDOWN)
                 fill_width = int(bar_width * progress)
-                pygame.draw.rect(self.screen, self.config.GRAY, (bar_x, bar_y, fill_width, bar_height))
+                pygame.draw.rect(
+                    self.screen, self.config.GRAY, (bar_x, bar_y, fill_width, bar_height)
+                )
 
-                label = self.small_font.render("Manual Rise (R) - Cooldown", True, self.config.WHITE)
+                label = self.small_font.render(
+                    "Manual Rise (R) - Cooldown", True, self.config.WHITE
+                )
             else:
                 # Ready to use
-                pygame.draw.rect(self.screen, self.config.GREEN, (bar_x, bar_y, bar_width, bar_height))
+                pygame.draw.rect(
+                    self.screen, self.config.GREEN, (bar_x, bar_y, bar_width, bar_height)
+                )
                 label = self.small_font.render("Manual Rise (R) - Ready!", True, self.config.WHITE)
         else:
             # Show time until next rise
@@ -1481,11 +1492,6 @@ class TetrisGame:
         self._apply_powerup_effects(delta_time)
 
         # Update rising lines system (only when not in line clearing or paused state)
-        from src.game_states import (  # pylint: disable=import-outside-toplevel
-            LineClearingState,
-            PausedState,
-        )
-
         if not isinstance(self.state, (LineClearingState, PausedState)):
             self.update_rising_lines(delta_time)
 
@@ -1543,12 +1549,6 @@ class TetrisGame:
                     if event.key == pygame.K_ESCAPE:
                         # Only quit from PlayingState, DemoState, or GameOverState
                         # ConfigMenuState and PausedState should handle ESC themselves
-                        from src.game_states import (  # pylint: disable=import-outside-toplevel
-                            DemoState,
-                            GameOverState,
-                            PlayingState,
-                        )
-
                         if isinstance(self.state, (PlayingState, DemoState, GameOverState)):
                             running = False
                         else:
