@@ -702,7 +702,7 @@ class TestGameConfig:
         """Test that GameConfig has all expected values"""
         # Display settings
         assert GameConfig.SCREEN_WIDTH == 800
-        assert GameConfig.SCREEN_HEIGHT == 700
+        assert GameConfig.SCREEN_HEIGHT == 800  # Updated for UI spacing
         assert GameConfig.BLOCK_SIZE == 30
 
         # Grid settings
@@ -1137,7 +1137,7 @@ class TestConfigMenu:
         config_state = ConfigMenuState()
         assert config_state.selected_option == 0
         assert config_state.current_difficulty == "medium"
-        assert len(config_state.options) == 4
+        assert len(config_state.options) == 5  # Updated: now includes rising_lines
 
     def test_config_menu_state_transition(self, game: TetrisGame) -> None:
         """Test transitioning to config menu state"""
@@ -1257,8 +1257,8 @@ class TestConfigMenu:
         config_state = ConfigMenuState()
         game.state = config_state
 
-        # Navigate to back option
-        config_state.selected_option = 3
+        # Navigate to back option (now at index 4)
+        config_state.selected_option = 4
 
         # Press ENTER
         event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN)

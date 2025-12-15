@@ -6,7 +6,23 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functionality, and professional gameplay mechanics.
+Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functionality, professional gameplay mechanics, and the **Rising Lines System**.
+
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Controls](#-controls)
+- [Game Modes](#-game-modes)
+- [Rising Lines System](#-rising-lines-system)
+- [Power-Ups](#-power-ups)
+- [Configuration](#-configuration)
+- [Development](#-development)
+- [Distribution](#-distribution)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
 
 ## 📑 Table of Contents
 
@@ -33,6 +49,7 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - 🏆 **Advanced Scoring**: Line clears (100-800×level), combos, and drop bonuses
 - 🤖 **AI Demo Mode**: Watch intelligent AI gameplay (see [Game Modes](doc/GAME_MODES.md))
 - ⚡ **Power-Up System**: Charged blocks with strategic bonuses (see [Power-Ups](doc/POWERUPS.md))
+- 🌊 **Rising Lines System**: Escalating pressure mode with difficulty-adaptive intervals (enabled by default)
 - 🎮 **Full Keyboard Controls**: Intuitive controls for all actions
 
 ## 🚀 Quick Start
@@ -88,9 +105,11 @@ See [PACKAGING.md](PACKAGING.md) for build instructions.
 | ← / → | Move piece | C | Hold piece |
 | ↓ | Soft drop | G | Toggle ghost |
 | ↑ | Rotate | SPACE | Hard drop |
-| P | Pause | R | Restart |
+| P | Pause | R | Manual rise* |
 | D | Demo mode | M | Menu |
 | B | Use Line Bomb | ESC | Exit |
+
+*R key triggers manual rising lines in Manual mode (see [Rising Lines System](#-rising-lines-system))
 
 ## 🕹️ Game Modes
 
@@ -98,9 +117,62 @@ See [PACKAGING.md](PACKAGING.md) for build instructions.
 Standard Tetris gameplay with modern enhancements including ghost piece, hold system, and progressive difficulty.
 
 ### Demo Mode (AI Attract Mode)
-Watch the AI play strategically with automatic or manual activation. Perfect for learning or as an idle display.
+Watch the AI play strategically with automatic or manual activation. Perfect for learning or as an idle display. **Rising lines are always enabled in demo mode** to showcase the feature.
 
 **📖 See [doc/GAME_MODES.md](doc/GAME_MODES.md) for detailed game mode information.**
+
+## 🌊 Rising Lines System
+
+**✨ ENABLED BY DEFAULT** - Transform Tetris into a survival experience! Lines with random holes spawn from the bottom at timed intervals, pushing all blocks upward and creating escalating pressure.
+
+### Quick Demo
+```bash
+# See rising lines in action immediately!
+python demo_rising_lines.py
+```
+
+### Configuration Menu
+Press **'M'** during gameplay to toggle Rising Lines ON/OFF (4th menu option).
+
+### Difficulty-Adaptive Intervals
+Rising line frequency adapts to both difficulty setting and game level:
+
+| Difficulty | Initial | Decrease/Level | Minimum |
+|-----------|---------|----------------|---------|
+| Easy      | 40s     | -1.5s          | 15s     |
+| Medium    | 30s     | -2.0s          | 10s     |
+| Hard      | 25s     | -2.5s          | 8s      |
+| Expert    | 20s     | -3.0s          | 5s      |
+
+### Game Modes
+- **Pressure Mode** (Default): Progressive difficulty based on difficulty setting and level
+- **Survival Mode**: Aggressive fixed intervals (12 seconds) for maximum challenge
+- **Manual Mode**: Player-controlled via 'R' key with 5-second cooldown
+
+### Visual Feedback
+- **Gray rising line blocks** at bottom of grid (distinct from colored tetrominos)
+- **Progress bar** at screen bottom showing time until next rise
+- **5-second warning** indicator with pulsing red bar at grid bottom
+- **Color-coded timer** (cyan = safe, red = warning)
+
+### Strategic Elements
+- Height management becomes critical - keep the board low!
+- Rising line holes create clearable opportunities
+- Combos gain value (clear faster than lines rise)
+- Power-ups shift upward with blocks (lost if pushed off top)
+
+### Configuration Example
+```python
+from src.config import GameConfig
+from src.tetris import TetrisGame
+
+class CustomConfig(GameConfig):
+    RISING_LINES_ENABLED = True  # Default!
+    RISING_MODE = "pressure"  # or "survival" or "manual"
+
+game = TetrisGame(CustomConfig)
+game.run()
+```
 
 ## ⚡ Power-Ups
 
@@ -116,7 +188,7 @@ Watch the AI play strategically with automatic or manual activation. Perfect for
 
 ## ⚙️ Configuration
 
-Customize game behavior by subclassing `GameConfig`:
+Customize gameplay by subclassing `GameConfig`:
 
 ```python
 from src.tetris import TetrisGame

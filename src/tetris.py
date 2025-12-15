@@ -14,6 +14,7 @@ from src.game_states import (
     GameOverState,
     GameState,
     LineClearingState,
+    PausedState,
     PlayingState,
 )
 from src.powerups import PowerUpManager
@@ -146,6 +147,14 @@ class TetrisGame:
 
         # Settings
         self.show_ghost = True
+
+        # Rising lines system
+        self.rising_timer = 0  # Time accumulated toward next rise
+        self.rising_interval = self.config.RISING_INITIAL_INTERVAL
+        self.rising_warning_active = False
+        self.rising_animation_active = False
+        self.rising_animation_progress = 0
+        self.rising_manual_cooldown = 0  # For manual mode
 
         # State pattern - start in demo mode if configured
         if self.config.DEMO_AUTO_START:
@@ -1019,16 +1028,29 @@ class TetrisGame:
             "SPACE: Hard Drop",
             "C: Hold",
             "B: Line Bomb",
-            "P: Pause",
-            "M: Menu",
-            "G: Toggle Ghost",
-            "D: Demo Mode",
-            "ESC: Quit",
         ]
+
+        # Add R key control if rising lines manual mode is active
+        if self.config.RISING_LINES_ENABLED and self.config.RISING_MODE == "manual":
+            controls.append("R: Manual Rise")
+
+        controls.extend(
+            [
+                "P: Pause",
+                "M: Menu",
+                "G: Toggle Ghost",
+                "D: Demo Mode",
+                "ESC: Quit",
+            ]
+        )
 
         for i, control in enumerate(controls):
             control_text = self.small_font.render(control, True, self.config.WHITE)
             self.screen.blit(control_text, (50, 400 + i * 30))
+
+        # Draw rising lines UI elements
+        self.draw_rising_timer()
+        self.draw_rising_warning()
 
     def _draw_active_powerups(self) -> None:
         """Draw active power-ups with timers/uses.
@@ -1080,7 +1102,7 @@ class TetrisGame:
 
         # Precision Lock: Extended lock delay before piece auto-locks
         # This is handled in the piece landing logic
-        pass
+        pass  # Power-up effects applied in specific methods (falling logic, scoring, etc.)
 
     def _clear_bottom_line(self) -> None:
         """Clear the bottom-most line (Line Bomb effect).
@@ -1111,6 +1133,276 @@ class TetrisGame:
 
             # Shift remaining power-ups down
             self.powerup_manager.shift_powerups_down([bottom_line])
+
+    def calculate_rising_interval(self) -> int:
+        """Calculate the rising line interval based on current level and mode.
+
+        Returns:
+            Time in milliseconds until next rising line (or very large value if disabled)
+
+        Note:
+            - Pressure mode: Progressive difficulty based on level
+            - Survival mode: Fixed aggressive intervals
+            - Manual mode: No automatic rising (returns large value)
+        """
+        if not self.config.RISING_LINES_ENABLED or self.config.RISING_MODE == "off":
+            return 999999999  # Effectively infinity - won't trigger
+
+        if self.config.RISING_MODE == "manual":
+            return 999999999  # Manual mode doesn't auto-trigger
+
+        if self.config.RISING_MODE == "survival":
+            # Survival mode has fixed aggressive intervals
+            return self.config.RISING_SURVIVAL_INTERVAL
+
+        # Pressure mode: decrease interval with level
+        interval = (
+            self.config.RISING_INITIAL_INTERVAL
+            - (self.level - 1) * self.config.RISING_INTERVAL_DECREASE
+        )
+        return max(interval, self.config.RISING_MIN_INTERVAL)
+
+    def _generate_rising_line(self) -> List[Optional[Tuple[int, int, int]]]:
+        """Generate a rising line with random holes.
+
+        Returns:
+            A list representing one row of the grid with random holes
+
+        Note:
+            Holes are randomly positioned, and the line uses RISING_LINE_COLOR
+            for filled blocks.
+        """
+        line = [self.config.RISING_LINE_COLOR for _ in range(self.config.GRID_WIDTH)]
+
+        # Create random holes
+        num_holes = random.randint(self.config.RISING_HOLES_MIN, self.config.RISING_HOLES_MAX)
+        hole_positions = random.sample(range(self.config.GRID_WIDTH), num_holes)
+
+        for pos in hole_positions:
+            line[pos] = None
+
+        return line
+
+    def _will_rise_cause_game_over(self) -> bool:
+        """Check if rising a line would push blocks above grid boundary.
+
+        Returns:
+            True if rising would cause game over, False otherwise
+
+        Note:
+            Checks if the top row has any blocks. If so, rising would
+            push them out of bounds.
+        """
+        # Check if top row has any blocks
+        return any(self.grid[0][x] is not None for x in range(self.config.GRID_WIDTH))
+
+    def trigger_rising_line(self) -> None:
+        """Trigger a rising line event.
+
+        Creates a new line at the bottom and pushes all existing content
+        up by one row. Triggers game over if blocks are pushed above boundary.
+
+        Side effects:
+            - Generates new rising line at bottom
+            - Shifts all grid content up by 1 row
+            - Adjusts current piece position up by 1
+            - Shifts power-ups up
+            - May trigger game over
+            - Starts rising animation
+            - Resets rising timer
+        """
+        if not self.config.RISING_LINES_ENABLED or self.config.RISING_MODE == "off":
+            return
+
+        # Check if rising would cause game over
+        if self._will_rise_cause_game_over():
+            self.game_over = True
+            self.state = GameOverState()
+            return
+
+        # Generate new rising line
+        new_line = self._generate_rising_line()
+
+        # Shift all rows up by one
+        self.grid = [self.grid[i] for i in range(1, self.config.GRID_HEIGHT)]
+        self.grid.append(new_line)
+
+        # Adjust current piece position (move up by 1)
+        if self.current_piece:
+            self.current_piece.y -= 1
+
+        # Shift power-ups up
+        # Note: Power-ups in the top row are lost
+        new_powerup_blocks = []
+        for x, y, powerup_type in self.powerup_manager.powerup_blocks:
+            if y > 0:  # Only keep blocks that aren't pushed off the top
+                new_powerup_blocks.append((x, y - 1, powerup_type))
+        self.powerup_manager.powerup_blocks = new_powerup_blocks
+
+        # Start animation
+        self.rising_animation_active = True
+        self.rising_animation_progress = 0
+
+        # Reset timer
+        self.rising_timer = 0
+        self.rising_warning_active = False
+
+        # Update interval for next rise
+        self.rising_interval = self.calculate_rising_interval()
+
+    def manual_trigger_rise(self) -> None:
+        """Manually trigger a rising line (manual mode only).
+
+        Triggers a rising line if manual mode is enabled and cooldown
+        has expired.
+
+        Side effects:
+            - May trigger rising line via trigger_rising_line()
+            - Resets manual cooldown timer
+        """
+        if self.config.RISING_MODE != "manual" or not self.config.RISING_LINES_ENABLED:
+            return
+
+        if self.rising_manual_cooldown > 0:
+            return  # Still on cooldown
+
+        self.trigger_rising_line()
+        self.rising_manual_cooldown = self.config.RISING_MANUAL_COOLDOWN
+
+    def update_rising_lines(self, delta_time: int) -> None:
+        """Update rising lines system timers and trigger rises.
+
+        Args:
+            delta_time: Time elapsed since last update in milliseconds
+
+        Side effects:
+            - Updates rising_timer
+            - May trigger rising_warning_active
+            - May trigger rising line
+            - Updates rising_animation_progress
+            - Updates rising_manual_cooldown
+        """
+        if not self.config.RISING_LINES_ENABLED or self.config.RISING_MODE == "off":
+            return
+
+        # Update manual cooldown
+        if self.rising_manual_cooldown > 0:
+            self.rising_manual_cooldown = max(0, self.rising_manual_cooldown - delta_time)
+
+        # Update animation
+        if self.rising_animation_active:
+            self.rising_animation_progress += delta_time
+            if self.rising_animation_progress >= self.config.RISING_ANIMATION_DURATION:
+                self.rising_animation_active = False
+                self.rising_animation_progress = 0
+            return  # Don't update timer during animation
+
+        # Don't update timer in manual mode (only manual triggers)
+        if self.config.RISING_MODE == "manual":
+            return
+
+        # Update timer
+        self.rising_timer += delta_time
+
+        # Check for warning
+        time_until_rise = self.rising_interval - self.rising_timer
+        if 0 < time_until_rise <= self.config.RISING_WARNING_TIME:
+            self.rising_warning_active = True
+        else:
+            self.rising_warning_active = False
+
+        # Check if time to rise
+        if self.rising_timer >= self.rising_interval:
+            self.trigger_rising_line()
+
+    def draw_rising_timer(self) -> None:
+        """Draw the rising lines timer/progress bar.
+
+        Displays a progress bar showing time until next rise, or cooldown
+        indicator for manual mode.
+
+        Side effects:
+            Draws progress bar and label to self.screen
+        """
+        if not self.config.RISING_LINES_ENABLED or self.config.RISING_MODE == "off":
+            return
+
+        # Position at bottom of screen
+        bar_width = 200
+        bar_height = 20
+        bar_x = self.config.SCREEN_WIDTH // 2 - bar_width // 2
+        bar_y = self.config.SCREEN_HEIGHT - 40
+
+        # Draw background
+        pygame.draw.rect(self.screen, self.config.DARK_GRAY, (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(self.screen, self.config.WHITE, (bar_x, bar_y, bar_width, bar_height), 2)
+
+        if self.config.RISING_MODE == "manual":
+            # Show cooldown status
+            if self.rising_manual_cooldown > 0:
+                progress = 1.0 - (self.rising_manual_cooldown / self.config.RISING_MANUAL_COOLDOWN)
+                fill_width = int(bar_width * progress)
+                pygame.draw.rect(
+                    self.screen, self.config.GRAY, (bar_x, bar_y, fill_width, bar_height)
+                )
+
+                label = self.small_font.render(
+                    "Manual Rise (R) - Cooldown", True, self.config.WHITE
+                )
+            else:
+                # Ready to use
+                pygame.draw.rect(
+                    self.screen, self.config.GREEN, (bar_x, bar_y, bar_width, bar_height)
+                )
+                label = self.small_font.render("Manual Rise (R) - Ready!", True, self.config.WHITE)
+        else:
+            # Show time until next rise
+            progress = self.rising_timer / self.rising_interval
+            fill_width = int(bar_width * progress)
+
+            # Color based on warning state
+            fill_color = self.config.RED if self.rising_warning_active else self.config.CYAN
+            pygame.draw.rect(self.screen, fill_color, (bar_x, bar_y, fill_width, bar_height))
+
+            # Label
+            mode_name = "PRESSURE" if self.config.RISING_MODE == "pressure" else "SURVIVAL"
+            time_left = max(0, self.rising_interval - self.rising_timer) / 1000
+            label = self.small_font.render(
+                f"{mode_name} - Next Rise: {time_left:.1f}s", True, self.config.WHITE
+            )
+
+        # Draw label above bar
+        self.screen.blit(label, (bar_x + bar_width // 2 - label.get_width() // 2, bar_y - 25))
+
+    def draw_rising_warning(self) -> None:
+        """Draw visual warning indicator before rising line.
+
+        Shows a flashing/pulsing indicator at the bottom of the grid
+        during the warning period.
+
+        Side effects:
+            Draws warning indicator to self.screen
+        """
+        if not self.rising_warning_active or not self.config.RISING_LINES_ENABLED:
+            return
+
+        # Pulsing effect
+        time_ms = pygame.time.get_ticks()
+        pulse = (1 + pygame.math.Vector2(1, 0).rotate(time_ms / 5).x) / 2
+        alpha = int(100 + 155 * pulse)
+
+        # Draw warning bar at bottom of grid
+        warning_height = 5
+        warning_rect = pygame.Rect(
+            self.config.GRID_X,
+            self.config.GRID_Y + self.config.GRID_HEIGHT * self.config.BLOCK_SIZE - warning_height,
+            self.config.GRID_WIDTH * self.config.BLOCK_SIZE,
+            warning_height,
+        )
+
+        warning_surface = pygame.Surface((warning_rect.width, warning_rect.height), pygame.SRCALPHA)
+        warning_surface.fill((*self.config.RED, alpha))
+        self.screen.blit(warning_surface, (warning_rect.x, warning_rect.y))
 
     def reset_game(self) -> None:
         """Reset the game to initial state.
@@ -1150,6 +1442,12 @@ class TetrisGame:
         self.powerup_manager.clear_all()
         self.lock_delay_timer = 0
         self.piece_has_landed = False
+        self.rising_timer = 0
+        self.rising_interval = self.config.RISING_INITIAL_INTERVAL
+        self.rising_warning_active = False
+        self.rising_animation_active = False
+        self.rising_animation_progress = 0
+        self.rising_manual_cooldown = 0
         self.next_piece = self.get_random_piece()
         self.hold_piece = None
         self.can_hold = True
@@ -1191,6 +1489,10 @@ class TetrisGame:
 
         # Apply power-up effects
         self._apply_powerup_effects(delta_time)
+
+        # Update rising lines system (only when not in line clearing or paused state)
+        if not isinstance(self.state, (LineClearingState, PausedState)):
+            self.update_rising_lines(delta_time)
 
         self.state.update(delta_time, self)
 
@@ -1246,12 +1548,6 @@ class TetrisGame:
                     if event.key == pygame.K_ESCAPE:
                         # Only quit from PlayingState, DemoState, or GameOverState
                         # ConfigMenuState and PausedState should handle ESC themselves
-                        from src.game_states import (  # pylint: disable=import-outside-toplevel
-                            DemoState,
-                            GameOverState,
-                            PlayingState,
-                        )
-
                         if isinstance(self.state, (PlayingState, DemoState, GameOverState)):
                             running = False
                         else:

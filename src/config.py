@@ -34,10 +34,10 @@ class GameConfig:
 
     # Display settings
     SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 700
+    SCREEN_HEIGHT = 800  # Increased from 700 to accommodate demo banner and rising lines UI
     BLOCK_SIZE = 30
     GRID_X = 250
-    GRID_Y = 50
+    GRID_Y = 120  # Increased from 50 to avoid overlap with demo banner
 
     # Grid settings
     GRID_WIDTH = 10
@@ -117,10 +117,38 @@ class GameConfig:
     # Game settings (mutable configuration options)
     # Difficulty levels affect initial fall speed and speed progression
     DIFFICULTY_SETTINGS = {
-        "easy": {"initial_speed": 1500, "speed_decrease": 80, "min_speed": 200},
-        "medium": {"initial_speed": 1000, "speed_decrease": 100, "min_speed": 100},
-        "hard": {"initial_speed": 700, "speed_decrease": 120, "min_speed": 50},
-        "expert": {"initial_speed": 400, "speed_decrease": 150, "min_speed": 30},
+        "easy": {
+            "initial_speed": 1500,
+            "speed_decrease": 80,
+            "min_speed": 200,
+            "rising_initial_interval": 40000,  # 40 seconds
+            "rising_interval_decrease": 1500,  # Decrease 1.5s per level
+            "rising_min_interval": 15000,  # Minimum 15 seconds
+        },
+        "medium": {
+            "initial_speed": 1000,
+            "speed_decrease": 100,
+            "min_speed": 100,
+            "rising_initial_interval": 30000,  # 30 seconds
+            "rising_interval_decrease": 2000,  # Decrease 2s per level
+            "rising_min_interval": 10000,  # Minimum 10 seconds
+        },
+        "hard": {
+            "initial_speed": 700,
+            "speed_decrease": 120,
+            "min_speed": 50,
+            "rising_initial_interval": 25000,  # 25 seconds
+            "rising_interval_decrease": 2500,  # Decrease 2.5s per level
+            "rising_min_interval": 8000,  # Minimum 8 seconds
+        },
+        "expert": {
+            "initial_speed": 400,
+            "speed_decrease": 150,
+            "min_speed": 30,
+            "rising_initial_interval": 20000,  # 20 seconds
+            "rising_interval_decrease": 3000,  # Decrease 3s per level
+            "rising_min_interval": 5000,  # Minimum 5 seconds
+        },
     }
 
     # Feature toggles
@@ -140,3 +168,26 @@ class GameConfig:
 
     # Precision Lock configuration
     PRECISION_LOCK_DELAY = 2000  # milliseconds of hover time before auto-lock
+
+    # Rising Lines System Configuration
+    RISING_LINES_ENABLED = True  # Enabled by default
+    RISING_MODE = "pressure"  # Options: "off", "pressure", "survival", "manual"
+
+    # Timing (milliseconds)
+    RISING_INITIAL_INTERVAL = 30000  # 30 seconds at level 1
+    RISING_INTERVAL_DECREASE = 2000  # Decrease 2s per level
+    RISING_MIN_INTERVAL = 10000  # Minimum 10 seconds (level 10+)
+    RISING_WARNING_TIME = 5000  # 5-second warning
+    RISING_ANIMATION_DURATION = 300  # Rise animation time
+
+    # Rising Line Properties
+    RISING_HOLES_MIN = 1  # Minimum holes per line
+    RISING_HOLES_MAX = 3  # Maximum holes per line
+    RISING_LINE_COLOR = (80, 80, 80)  # Gray color for rising blocks
+
+    # Manual Rising (when RISING_MODE = "manual")
+    RISING_MANUAL_COOLDOWN = 5000  # 5 seconds between manual rises
+
+    # Survival Mode (when RISING_MODE = "survival")
+    RISING_SURVIVAL_INTERVAL = 12000  # 12 seconds
+    RISING_SURVIVAL_MIN_INTERVAL = 8000  # 8 seconds minimum
