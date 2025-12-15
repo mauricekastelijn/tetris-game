@@ -23,15 +23,29 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 
 Transform Tetris into a survival experience with the **Rising Lines System**! Lines with random holes spawn from the bottom at timed intervals, pushing all existing blocks upward and creating escalating pressure.
 
+**✨ ENABLED BY DEFAULT** - Rising lines are now active from the start! Toggle in the configuration menu (press 'M') or see the demo.
+
 **🚀 Quick Demo:**
 ```bash
 # See rising lines in action immediately!
 python demo_rising_lines.py
 ```
 
+**🎛️ Configuration Menu:**
+Press **'M'** during gameplay to access settings:
+- **Difficulty**: Affects both fall speed and rising line frequency
+- **Rising Lines**: Toggle ON/OFF (4th menu option)
+
+**Difficulty-Adaptive Rising Intervals:**
+- **Easy**: 40s → 15s (more forgiving, great for learning)
+- **Medium**: 30s → 10s (balanced challenge, default)
+- **Hard**: 25s → 8s (faster pressure builds)
+- **Expert**: 20s → 5s (intense survival mode)
+
+Intervals decrease with both difficulty level AND game level!
+
 **Game Modes:**
-- **Classic Mode** (Default) - Rising lines disabled for traditional gameplay
-- **Pressure Mode** - Progressive difficulty: intervals decrease from 30s (Level 1) to 10s (Level 10+)
+- **Pressure Mode** (Default) - Progressive difficulty based on difficulty setting and level
 - **Survival Mode** - Aggressive fixed intervals (12 seconds) for maximum challenge
 - **Manual Mode** - You control when lines rise (press 'R' key, 5-second cooldown)
 
@@ -42,12 +56,6 @@ python demo_rising_lines.py
 - **Smooth animation** when lines rise (300ms upward slide)
 - Color-coded timer (cyan = safe, red = warning)
 
-**Difficulty Progression (Pressure Mode):**
-- **Level 1-3:** Rise every 40 seconds, 2-3 holes per line
-- **Level 4-6:** Rise every 30 seconds, 1-3 holes per line
-- **Level 7-9:** Rise every 20 seconds, 1-2 holes per line
-- **Level 10+:** Rise every 15 seconds, 1-2 holes per line (minimum)
-
 **Strategic Elements:**
 - Height management becomes critical - keep the board low!
 - Rising line holes create clearable opportunities
@@ -55,23 +63,28 @@ python demo_rising_lines.py
 - Power-ups shift upward with blocks (lost if pushed off top)
 - Game over if blocks are pushed above grid boundary
 
-**How to Enable:**
+**Demo Mode:**
+Rising lines are **always enabled** in demo mode to showcase the feature!
+
+**How to Configure:**
 ```python
+# Toggle via menu (press 'M' in-game)
+# OR configure programmatically:
 from src.config import GameConfig
 from src.tetris import TetrisGame
 
-class PressureConfig(GameConfig):
-    RISING_LINES_ENABLED = True
+class CustomConfig(GameConfig):
+    RISING_LINES_ENABLED = True  # Now default!
     RISING_MODE = "pressure"  # or "survival" or "manual"
 
-game = TetrisGame(PressureConfig)
+game = TetrisGame(CustomConfig)
 game.run()
 ```
 
 **Controls:**
+- **'M'**: Open configuration menu to toggle rising lines
 - In **Manual Mode**: Press 'R' to trigger a rising line (watch the cooldown bar!)
 - Rising lines pause during: line clearing animations and pause state
-- All other controls remain the same
 
 ### Charged Blocks (Power-Up System)
 
