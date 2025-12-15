@@ -48,7 +48,7 @@ jobs:
           ls -lh dist/tetris-linux
 
       - name: Upload Linux executable artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tetris-linux
           path: dist/tetris-linux
@@ -78,7 +78,7 @@ jobs:
           fi
 
       - name: Upload Windows executable artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tetris-windows
           path: dist/tetris.exe
