@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/mauricekastelijn/tetris-game/compare/v1.1.0...v1.2.0) (2025-12-15)
+
+
+### Features
+
+* add power blocks. ([2b782e5](https://github.com/mauricekastelijn/tetris-game/commit/2b782e59e5f3d7b5b9b609387104dab7b143b74f))
+* add power blocks. ([07f54ae](https://github.com/mauricekastelijn/tetris-game/commit/07f54ae02cbc9b717eae5535f1ee15ada6c78fe5))
+
 ## [1.1.0](https://github.com/mauricekastelijn/tetris-game/compare/v1.0.2...v1.1.0) (2025-12-14)
 
 
