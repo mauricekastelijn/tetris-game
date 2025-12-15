@@ -34,10 +34,10 @@ class GameConfig:
 
     # Display settings
     SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 700
+    SCREEN_HEIGHT = 800  # Increased from 700 to accommodate demo banner and rising lines UI
     BLOCK_SIZE = 30
     GRID_X = 250
-    GRID_Y = 50
+    GRID_Y = 120  # Increased from 50 to avoid overlap with demo banner
 
     # Grid settings
     GRID_WIDTH = 10

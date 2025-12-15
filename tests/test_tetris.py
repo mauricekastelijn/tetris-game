@@ -702,7 +702,7 @@ class TestGameConfig:
         """Test that GameConfig has all expected values"""
         # Display settings
         assert GameConfig.SCREEN_WIDTH == 800
-        assert GameConfig.SCREEN_HEIGHT == 700
+        assert GameConfig.SCREEN_HEIGHT == 800  # Updated for UI spacing
         assert GameConfig.BLOCK_SIZE == 30
 
         # Grid settings

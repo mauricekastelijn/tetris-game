@@ -6,7 +6,7 @@ import pygame
 import pytest
 
 from src.config import GameConfig
-from src.game_states import ConfigMenuState, DemoState, PlayingState
+from src.game_states import ConfigMenuState, DemoState
 from src.tetris import TetrisGame
 
 

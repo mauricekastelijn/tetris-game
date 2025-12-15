@@ -6,132 +6,36 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functionality, and professional gameplay mechanics.
+Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functionality, professional gameplay mechanics, and the **Rising Lines System**.
+
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Controls](#-controls)
+- [Game Modes](#-game-modes)
+- [Rising Lines System](#-rising-lines-system)
+- [Power-Ups](#-power-ups)
+- [Configuration](#-configuration)
+- [Development](#-development)
+- [Distribution](#-distribution)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
 
 ## ✨ Features
 
-- 🎯 Classic mechanics with all 7 pieces + wall-kick rotation
-- 👻 Ghost piece preview (toggle with 'G') + hold piece system
-- ✨ Animated line clearing + 3D block rendering
-- 📈 Progressive difficulty + advanced scoring (single: 100×level, Tetris: 800×level)
-- 🤖 **AI-powered demo mode** (attract mode) - watch the AI play strategically
-- ⚡ **Charged Blocks (Power-Ups)** - strategic bonuses without breaking core mechanics
-- 🌊 **Rising Lines System** - escalating pressure mode with strategic depth
-- 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R M ESC)
-
-### Rising Lines System ("Pressure Mode")
-
-Transform Tetris into a survival experience with the **Rising Lines System**! Lines with random holes spawn from the bottom at timed intervals, pushing all existing blocks upward and creating escalating pressure.
-
-**✨ ENABLED BY DEFAULT** - Rising lines are now active from the start! Toggle in the configuration menu (press 'M') or see the demo.
-
-**🚀 Quick Demo:**
-```bash
-# See rising lines in action immediately!
-python demo_rising_lines.py
-```
-
-**🎛️ Configuration Menu:**
-Press **'M'** during gameplay to access settings:
-- **Difficulty**: Affects both fall speed and rising line frequency
-- **Rising Lines**: Toggle ON/OFF (4th menu option)
-
-**Difficulty-Adaptive Rising Intervals:**
-- **Easy**: 40s → 15s (more forgiving, great for learning)
-- **Medium**: 30s → 10s (balanced challenge, default)
-- **Hard**: 25s → 8s (faster pressure builds)
-- **Expert**: 20s → 5s (intense survival mode)
-
-Intervals decrease with both difficulty level AND game level!
-
-**Game Modes:**
-- **Pressure Mode** (Default) - Progressive difficulty based on difficulty setting and level
-- **Survival Mode** - Aggressive fixed intervals (12 seconds) for maximum challenge
-- **Manual Mode** - You control when lines rise (press 'R' key, 5-second cooldown)
-
-**Visual Feedback:**
-- **Gray rising line blocks** at bottom of grid (distinct from colored tetrominos)
-- **Progress bar** at screen bottom showing time until next rise
-- **5-second warning** indicator with pulsing red bar at grid bottom
-- **Smooth animation** when lines rise (300ms upward slide)
-- Color-coded timer (cyan = safe, red = warning)
-
-**Strategic Elements:**
-- Height management becomes critical - keep the board low!
-- Rising line holes create clearable opportunities
-- Combos become more valuable (clear faster than lines rise)
-- Power-ups shift upward with blocks (lost if pushed off top)
-- Game over if blocks are pushed above grid boundary
-
-**Demo Mode:**
-Rising lines are **always enabled** in demo mode to showcase the feature!
-
-**How to Configure:**
-```python
-# Toggle via menu (press 'M' in-game)
-# OR configure programmatically:
-from src.config import GameConfig
-from src.tetris import TetrisGame
-
-class CustomConfig(GameConfig):
-    RISING_LINES_ENABLED = True  # Now default!
-    RISING_MODE = "pressure"  # or "survival" or "manual"
-
-game = TetrisGame(CustomConfig)
-game.run()
-```
-
-**Controls:**
-- **'M'**: Open configuration menu to toggle rising lines
-- In **Manual Mode**: Press 'R' to trigger a rising line (watch the cooldown bar!)
-- Rising lines pause during: line clearing animations and pause state
-
-### Charged Blocks (Power-Up System)
-
-Special glowing blocks with **rainbow gradient effects** are part of falling tetromino pieces at a configurable rate (default 1.5% chance per piece). When you clear lines containing these blocks, you receive temporary power-ups that add tactical depth to gameplay:
-
-**All Power-Ups Fully Implemented:**
-- **⏰ Time Dilator** (Blue) - Slows fall speed by 50% for 10 seconds
-- **💎 Score Amplifier** (Gold) - 2x score multiplier for 8 seconds
-- **💣 Line Bomb** (Red) - Instantly clears the bottom-most line (press 'B' to activate, 1 use)
-- **👻 Phantom Mode** (Purple) - Next 3 pieces pass through existing blocks during placement (3 uses)
-- **🎯 Precision Lock** (Green) - Gain 2 seconds of hover time before auto-lock (2s duration)
-
-**Visual Features:**
-- Rainbow gradient glow effect with pulsing animation
-- Power-up blocks are visible on falling pieces, next piece preview, and hold piece
-- Active power-ups displayed with remaining time/uses
-- Distinct visual appearance for each power-up type
-
-**How It Works:**
-- Random falling pieces have one block designated as a power-up block
-- You can see which block has the power-up while the piece is falling
-- When a line containing a power-up block is cleared, the power-up activates
-- Plan your strategy by deciding when and where to place power-up pieces
-
-**Controls:**
-- Press 'M' during gameplay to access the configuration menu and enable/disable Charged Blocks
-- Press 'B' to activate Line Bomb when available
-
-### Demo Mode (Attract Mode)
-
-The game features an auto-playing demo mode that showcases strategic AI gameplay:
-
-- **Auto-starts** when you launch the game
-- **Demonstrates** advanced techniques (line clears, hold piece usage, strategic placement)
-- **Press any key** to exit demo and start playing
-- **Press 'D' during gameplay** to manually enter demo mode
-- Automatically starts after game over (after 3-second delay)
-
-The AI evaluates all possible placements using heuristics including:
-
-- Line clear opportunities (heavily prioritized)
-- Board height minimization
-- Hole avoidance
-- Surface smoothness
-- Strategic hold piece usage
-
-Perfect for new players learning the game or as an idle attract mode!
+- 🎯 **Classic Tetris**: All 7 pieces with wall-kick rotation (SRS)
+- 👻 **Ghost Piece**: Preview landing position (toggle with 'G')
+- 💾 **Hold System**: Store pieces for strategic use
+- ✨ **Smooth Animations**: Line clear effects and 3D block rendering
+- 📈 **Progressive Difficulty**: Speed increases with level progression
+- 🏆 **Advanced Scoring**: Line clears (100-800×level), combos, and drop bonuses
+- 🤖 **AI Demo Mode**: Watch intelligent AI gameplay (see [Game Modes](doc/GAME_MODES.md))
+- ⚡ **Power-Up System**: Charged blocks with strategic bonuses (see [Power-Ups](doc/POWERUPS.md))
+- 🌊 **Rising Lines System**: Escalating pressure mode with difficulty-adaptive intervals (enabled by default)
+- 🎮 **Full Keyboard Controls**: Intuitive controls for all actions
 
 ## 🚀 Quick Start
 
@@ -141,7 +45,7 @@ git clone https://github.com/mauricekastelijn/tetris-game.git
 cd tetris-game
 pip install -r requirements.txt
 
-# Run
+# Run the game
 python -m src.tetris
 
 # Or install as package
@@ -149,41 +53,127 @@ pip install -e .
 tetris
 ```
 
-## 🏗️ Development
+**Requirements:**
+- Python 3.8 or higher
+- Pygame (installed via requirements.txt)
 
-See [doc/DEVELOPMENT.md](doc/DEVELOPMENT.md) for complete development guide including:
+## 📋 Installation
 
-- Environment setup (virtual environment, dependencies)
-- Code quality enforcement (Black, isort, Flake8, Pylint)
-- Testing with pytest
-- Pre-commit hooks
-- CI/CD workflows
-
-### Quick Development Setup
+### From Source
 
 ```bash
-# Setup environment
-python -m venv .venv
-.venv\Scripts\Activate.ps1  # Windows PowerShell
-source .venv/bin/activate    # macOS/Linux
+git clone https://github.com/mauricekastelijn/tetris-game.git
+cd tetris-game
 pip install -r requirements.txt
-pip install black isort flake8 pylint pytest pytest-cov pre-commit
-
-# Auto-fix code quality issues (required before commit)
-python scripts/lint_fix.py --verbose
-
-# Setup pre-commit hooks
-python scripts/setup_hooks.py
-
-# Run tests
-pytest tests/ -v --cov=tetris
+python -m src.tetris
 ```
 
-See [`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md) for mandatory code quality requirements.
+### As Python Package
 
-## 🎨 Customization
+```bash
+pip install -e .
+tetris
+```
 
-Customize game behavior by subclassing `GameConfig`:
+### Pre-built Executables
+
+Download pre-built executables from [GitHub Releases](https://github.com/mauricekastelijn/tetris-game/releases):
+- Windows: `tetris.exe`
+- Linux: `tetris` (requires GLIBC 2.35+, see [Distribution](#-distribution) for compatibility)
+
+See [PACKAGING.md](PACKAGING.md) for build instructions.
+
+## 🎮 Controls
+
+| Key | Action | Key | Action |
+|-----|--------|-----|--------|
+| ← / → | Move piece | C | Hold piece |
+| ↓ | Soft drop | G | Toggle ghost |
+| ↑ | Rotate | SPACE | Hard drop |
+| P | Pause | R | Manual rise* |
+| D | Demo mode | M | Menu |
+| B | Use Line Bomb | ESC | Exit |
+
+*R key triggers manual rising lines in Manual mode (see [Rising Lines System](#-rising-lines-system))
+
+## 🕹️ Game Modes
+
+### Classic Mode
+Standard Tetris gameplay with modern enhancements including ghost piece, hold system, and progressive difficulty.
+
+### Demo Mode (AI Attract Mode)
+Watch the AI play strategically with automatic or manual activation. Perfect for learning or as an idle display. **Rising lines are always enabled in demo mode** to showcase the feature.
+
+**📖 See [doc/GAME_MODES.md](doc/GAME_MODES.md) for detailed game mode information.**
+
+## 🌊 Rising Lines System
+
+**✨ ENABLED BY DEFAULT** - Transform Tetris into a survival experience! Lines with random holes spawn from the bottom at timed intervals, pushing all blocks upward and creating escalating pressure.
+
+### Quick Demo
+```bash
+# See rising lines in action immediately!
+python demo_rising_lines.py
+```
+
+### Configuration Menu
+Press **'M'** during gameplay to toggle Rising Lines ON/OFF (4th menu option).
+
+### Difficulty-Adaptive Intervals
+Rising line frequency adapts to both difficulty setting and game level:
+
+| Difficulty | Initial | Decrease/Level | Minimum |
+|-----------|---------|----------------|---------|
+| Easy      | 40s     | -1.5s          | 15s     |
+| Medium    | 30s     | -2.0s          | 10s     |
+| Hard      | 25s     | -2.5s          | 8s      |
+| Expert    | 20s     | -3.0s          | 5s      |
+
+### Game Modes
+- **Pressure Mode** (Default): Progressive difficulty based on difficulty setting and level
+- **Survival Mode**: Aggressive fixed intervals (12 seconds) for maximum challenge
+- **Manual Mode**: Player-controlled via 'R' key with 5-second cooldown
+
+### Visual Feedback
+- **Gray rising line blocks** at bottom of grid (distinct from colored tetrominos)
+- **Progress bar** at screen bottom showing time until next rise
+- **5-second warning** indicator with pulsing red bar at grid bottom
+- **Color-coded timer** (cyan = safe, red = warning)
+
+### Strategic Elements
+- Height management becomes critical - keep the board low!
+- Rising line holes create clearable opportunities
+- Combos gain value (clear faster than lines rise)
+- Power-ups shift upward with blocks (lost if pushed off top)
+
+### Configuration Example
+```python
+from src.config import GameConfig
+from src.tetris import TetrisGame
+
+class CustomConfig(GameConfig):
+    RISING_LINES_ENABLED = True  # Default!
+    RISING_MODE = "pressure"  # or "survival" or "manual"
+
+game = TetrisGame(CustomConfig)
+game.run()
+```
+
+## ⚡ Power-Ups
+
+**Charged Blocks** add strategic depth with special glowing blocks that grant temporary power-ups:
+
+- ⏰ **Time Dilator** - Slows fall speed by 50%
+- 💎 **Score Amplifier** - 2x score multiplier
+- 💣 **Line Bomb** - Clears bottom line (press 'B')
+- 👻 **Phantom Mode** - Pieces pass through blocks
+- 🎯 **Precision Lock** - Extended hover time
+
+**📖 See [doc/POWERUPS.md](doc/POWERUPS.md) for complete power-up documentation.**
+
+## ⚙️ Configuration
+
+Customize gameplay by subclassing `GameConfig`:
 
 ```python
 from src.tetris import TetrisGame
@@ -192,156 +182,45 @@ from src.config import GameConfig
 class EasyConfig(GameConfig):
     INITIAL_FALL_SPEED = 1500  # Slower
     LINES_PER_LEVEL = 15       # More lines per level
-    LINE_SCORES = {1: 150, 2: 450, 3: 750, 4: 1200}  # Higher scores
+    POWER_UP_SPAWN_CHANCE = 0.10  # More power-ups
 
 game = TetrisGame(EasyConfig)
 game.run()
 ```
 
-**Configurable:** Display settings, grid size, timing, scoring, colors, shapes. See `GameConfig` class for all options.
+**📖 See [doc/CONFIGURATION.md](doc/CONFIGURATION.md) for complete configuration guide.**
 
-### Power-Up Configuration
+## 🏗️ Development
 
-Customize power-up behavior:
+### Quick Setup
 
-```python
-class CustomPowerUpConfig(GameConfig):
-    CHARGED_BLOCKS_ENABLED = True  # Enable power-ups
-    POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
-    POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster rainbow animation
-    PRECISION_LOCK_DELAY = 3000  # 3 seconds hover time (default: 2s)
+```bash
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# or .venv\Scripts\Activate.ps1  # Windows
 
-    # Customize individual power-up durations/uses
-    POWER_UP_TYPES = {
-        'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
-        'score_amplifier': {'color': (255, 215, 0), 'duration': 10000},  # 10 seconds
-        'line_bomb': {'color': (255, 50, 50), 'uses': 2},  # 2 uses
-        'phantom_mode': {'color': (180, 0, 255), 'uses': 5},  # 5 uses
-        'precision_lock': {'color': (0, 255, 150), 'duration': 3000},  # 3 seconds
-    }
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
-game = TetrisGame(CustomPowerUpConfig)
-game.run()
+# Run code quality checks
+python scripts/lint_fix.py --verbose
+
+# Run tests
+pytest tests/ -v --cov=src
 ```
 
-### Demo Mode Configuration
-
-Customize demo mode behavior:
-
-```python
-class CustomDemoConfig(GameConfig):
-    DEMO_AUTO_START = False  # Disable auto-start
-    DEMO_AFTER_GAME_OVER = True  # Keep auto-start after game over
-    DEMO_GAME_OVER_DELAY = 5000  # Wait 5 seconds before demo starts
-    DEMO_MOVE_DELAY = 100  # Faster AI decision-making (default: 150ms)
-
-game = TetrisGame(CustomDemoConfig)
-game.run()
-```
-
-### Rising Lines Configuration
-
-Customize rising lines behavior for different difficulty levels and game modes:
-
-#### Pressure Mode (Progressive Difficulty)
-```python
-class PressureConfig(GameConfig):
-    RISING_LINES_ENABLED = True
-    RISING_MODE = "pressure"
-    
-    # Timing configuration
-    RISING_INITIAL_INTERVAL = 30000  # 30 seconds at level 1
-    RISING_INTERVAL_DECREASE = 2000  # Decrease 2s per level
-    RISING_MIN_INTERVAL = 10000  # Minimum 10 seconds
-    
-    # Line properties
-    RISING_HOLES_MIN = 1  # Minimum holes per line
-    RISING_HOLES_MAX = 3  # Maximum holes per line
-    RISING_LINE_COLOR = (80, 80, 80)  # Gray color
-    
-    # Visual feedback
-    RISING_WARNING_TIME = 5000  # 5-second warning
-    RISING_ANIMATION_DURATION = 300  # 300ms rise animation
-
-game = TetrisGame(PressureConfig)
-game.run()
-```
-
-#### Survival Mode (Fixed Aggressive Intervals)
-```python
-class SurvivalConfig(GameConfig):
-    RISING_LINES_ENABLED = True
-    RISING_MODE = "survival"
-    
-    # Fixed aggressive intervals
-    RISING_SURVIVAL_INTERVAL = 12000  # 12 seconds
-    RISING_SURVIVAL_MIN_INTERVAL = 8000  # 8 seconds minimum
-    
-    # Challenging line properties
-    RISING_HOLES_MIN = 1
-    RISING_HOLES_MAX = 2  # Fewer holes = harder
-
-game = TetrisGame(SurvivalConfig)
-game.run()
-```
-
-#### Manual Mode (Player-Controlled)
-```python
-class ManualRisingConfig(GameConfig):
-    RISING_LINES_ENABLED = True
-    RISING_MODE = "manual"
-    
-    # Cooldown between manual triggers
-    RISING_MANUAL_COOLDOWN = 5000  # 5 seconds
-    
-    # Line properties (same as other modes)
-    RISING_HOLES_MIN = 1
-    RISING_HOLES_MAX = 3
-
-game = TetrisGame(ManualRisingConfig)
-game.run()
-# Press 'R' during gameplay to trigger rising lines
-```
-
-#### Easy/Hard Variants
-```python
-# Easy Rising Mode
-class EasyRisingConfig(GameConfig):
-    RISING_LINES_ENABLED = True
-    RISING_MODE = "pressure"
-    RISING_INITIAL_INTERVAL = 45000  # 45 seconds
-    RISING_HOLES_MIN = 2
-    RISING_HOLES_MAX = 4  # More holes = easier
-
-# Hard Rising Mode
-class HardRisingConfig(GameConfig):
-    RISING_LINES_ENABLED = True
-    RISING_MODE = "pressure"
-    RISING_INITIAL_INTERVAL = 20000  # 20 seconds
-    RISING_HOLES_MIN = 1
-    RISING_HOLES_MAX = 2  # Fewer holes = harder
-```
-
-**Balancing Tips:**
-- Increase `RISING_INITIAL_INTERVAL` for easier gameplay
-- Decrease `RISING_MIN_INTERVAL` for more challenge at high levels
-- More holes (`RISING_HOLES_MAX`) makes lines easier to clear
-- Shorter `RISING_WARNING_TIME` increases surprise factor
-- Combine with power-ups for strategic depth
+**📖 See [doc/DEVELOPMENT.md](doc/DEVELOPMENT.md) for complete development guide including:**
+- Environment setup
+- Code quality tools (Black, isort, Flake8, Pylint)
+- Testing with pytest
+- Pre-commit hooks
+- CI/CD workflows
 
 ## 📦 Distribution
 
-### Building a Python Package
-
-```bash
-# Build package
-pip install build
-python -m build
-```
-
-### Creating Executables
-
-Build standalone executables for Windows and Linux:
+### Building Executables
 
 ```bash
 # Quick build (recommended)
@@ -352,62 +231,49 @@ pip install pyinstaller
 pyinstaller tetris.spec
 ```
 
-**Output**:
+**Output:**
 - Windows: `dist/tetris.exe`
 - Linux/macOS: `dist/tetris`
 
 ### Linux Compatibility
 
-The Linux executable requires **GLIBC 2.35 or newer**. Compatible distributions include:
+Linux executables require **GLIBC 2.35+**. Compatible with:
+- Ubuntu 22.04 LTS or newer
+- Debian 12 (Bookworm) or newer
+- Fedora 35+, RHEL/Rocky 9, Arch Linux
 
-| Distribution | Minimum Version | GLIBC Version |
-|-------------|-----------------|---------------|
-| Ubuntu      | 22.04 LTS       | 2.35          |
-| Ubuntu      | 24.04 LTS       | 2.38          |
-| Debian      | 12 (Bookworm)   | 2.36          |
-| Debian      | 13 (Trixie)     | 2.40+         |
-| Fedora      | 35+             | 2.34+         |
-| RHEL/Rocky/AlmaLinux | 9      | 2.34          |
-| Arch Linux  | Current         | 2.35+         |
+For older distributions, install from source.
 
-**Not supported**: Ubuntu 20.04, Debian 11, RHEL/Rocky 8, or older distributions with GLIBC < 2.35.
-
-If your distribution is not compatible, install from source:
-
-```bash
-git clone https://github.com/mauricekastelijn/tetris-game
-cd tetris-game
-pip install -r requirements.txt
-python -m src.tetris
-```
-
-### Pre-built Executables
-
-Download pre-built executables from:
-
-- **GitHub Releases**: Tagged releases include executables for Windows and Linux
-- **GitHub Actions**: Latest builds available in workflow artifacts
-
-**See [PACKAGING.md](PACKAGING.md) for complete build instructions, automated CI/CD builds, and distribution guide.**
+**📖 See [PACKAGING.md](PACKAGING.md) for complete distribution guide including:**
+- Building Python packages
+- Creating executables for Windows/Linux
+- Linux GLIBC compatibility details
+- Pre-built executables from GitHub Releases
+- Automated CI/CD builds
 
 ## 🤝 Contributing
 
-1. Fork repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Run linter: `python scripts/lint_fix.py --verbose`
-4. Ensure tests pass: `pytest tests/ -v`
-5. Submit PR
+We welcome contributions! To get started:
 
-See [CONTRIBUTING.md](doc/CONTRIBUTING.md) for guidelines and [DEVELOPMENT.md](doc/DEVELOPMENT.md) for setup.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Run code quality checks: `python scripts/lint_fix.py --verbose`
+4. Ensure tests pass: `pytest tests/ -v`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+**📖 See [doc/CONTRIBUTING.md](doc/CONTRIBUTING.md) for contribution guidelines.**
 
 ## 📝 License
 
-MIT License - see [LICENSE](LICENSE) file.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - Classic Tetris by Alexey Pajitnov
 - Built with [Pygame](https://www.pygame.org/)
+- Inspired by modern Tetris implementations
 
 ---
 
