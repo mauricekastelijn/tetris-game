@@ -77,38 +77,44 @@ class PlayingState(GameState):
             B: Activate Line Bomb (if available)
             R: Manual rising line trigger (if manual mode enabled)
         """
-        if event.key == pygame.K_LEFT:
+        key = event.key
+
+        # Movement controls
+        if key == pygame.K_LEFT:
             game.move_piece(-1, 0)
-        elif event.key == pygame.K_RIGHT:
+        elif key == pygame.K_RIGHT:
             game.move_piece(1, 0)
-        elif event.key == pygame.K_DOWN:
+        elif key == pygame.K_DOWN:
             if game.move_piece(0, 1):
                 game.score += game.config.SOFT_DROP_BONUS
-        elif event.key == pygame.K_UP:
+        elif key == pygame.K_UP:
             game.rotate_piece()
-        elif event.key == pygame.K_SPACE:
+        elif key == pygame.K_SPACE:
             game.hard_drop()
-        elif event.key == pygame.K_c:
+        # Piece management
+        elif key == pygame.K_c:
             game.hold_current_piece()
-        elif event.key == pygame.K_g:
+        elif key == pygame.K_g:
             game.show_ghost = not game.show_ghost
-        elif event.key == pygame.K_p:
+        # Game state changes
+        elif key == pygame.K_p:
             game.state = PausedState()
-        elif event.key == pygame.K_d:
-            # Enter demo mode
+        elif key == pygame.K_d:
             game.reset_game()
             game.state = DemoState()
-        elif event.key == pygame.K_m:
-            # Open configuration menu
+        elif key == pygame.K_m:
             game.state = ConfigMenuState()
-        elif event.key == pygame.K_b:
-            # Activate Line Bomb if available
-            if game.powerup_manager.is_active("line_bomb"):
-                if game.powerup_manager.use_powerup("line_bomb"):
-                    game._clear_bottom_line()
-        elif event.key == pygame.K_r:
-            # Manual rising line trigger
+        # Power-ups and special actions
+        elif key == pygame.K_b:
+            self._handle_line_bomb(game)
+        elif key == pygame.K_r:
             game.manual_trigger_rise()
+
+    def _handle_line_bomb(self, game: "TetrisGame") -> None:
+        """Handle Line Bomb power-up activation."""
+        if game.powerup_manager.is_active("line_bomb"):
+            if game.powerup_manager.use_powerup("line_bomb"):
+                game._clear_bottom_line()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
