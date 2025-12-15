@@ -1229,10 +1229,10 @@ class TetrisGame:
 
         # Shift power-ups up
         # Note: Power-ups in the top row are lost
-        new_powerup_blocks = {}
-        for (x, y), powerup_type in self.powerup_manager.powerup_blocks.items():
+        new_powerup_blocks = []
+        for x, y, powerup_type in self.powerup_manager.powerup_blocks:
             if y > 0:  # Only keep blocks that aren't pushed off the top
-                new_powerup_blocks[(x, y - 1)] = powerup_type
+                new_powerup_blocks.append((x, y - 1, powerup_type))
         self.powerup_manager.powerup_blocks = new_powerup_blocks
 
         # Start animation
