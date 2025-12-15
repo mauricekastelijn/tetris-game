@@ -1102,8 +1102,7 @@ class TetrisGame:
 
         # Precision Lock: Extended lock delay before piece auto-locks
         # This is handled in the piece landing logic
-        # No direct effects applied here
-        # Effects are handled in specific methods (falling logic, scoring, etc.)
+        pass  # Power-up effects applied in specific methods (falling logic, scoring, etc.)
 
     def _clear_bottom_line(self) -> None:
         """Clear the bottom-most line (Line Bomb effect).
@@ -1139,18 +1138,18 @@ class TetrisGame:
         """Calculate the rising line interval based on current level and mode.
 
         Returns:
-            Time in milliseconds until next rising line
+            Time in milliseconds until next rising line (or very large value if disabled)
 
         Note:
             - Pressure mode: Progressive difficulty based on level
             - Survival mode: Fixed aggressive intervals
-            - Manual mode: No automatic rising
+            - Manual mode: No automatic rising (returns large value)
         """
         if not self.config.RISING_LINES_ENABLED or self.config.RISING_MODE == "off":
-            return float("inf")  # type: ignore[return-value]
+            return 999999999  # Effectively infinity - won't trigger
 
         if self.config.RISING_MODE == "manual":
-            return float("inf")  # type: ignore[return-value]
+            return 999999999  # Manual mode doesn't auto-trigger
 
         if self.config.RISING_MODE == "survival":
             # Survival mode has fixed aggressive intervals

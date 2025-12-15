@@ -133,9 +133,9 @@ class TestRisingLinesBasicFunctionality:
         assert interval == 500  # MIN_INTERVAL
 
     def test_calculate_rising_interval_disabled(self, game_disabled: TetrisGame) -> None:
-        """Test that disabled mode returns infinity."""
+        """Test that disabled mode returns very large value (effectively infinity)."""
         interval = game_disabled.calculate_rising_interval()
-        assert interval == float("inf")
+        assert interval == 999999999  # Very large value that won't trigger in normal gameplay
 
     def test_generate_rising_line(self, game_pressure: TetrisGame) -> None:
         """Test that rising lines are generated with correct holes."""
