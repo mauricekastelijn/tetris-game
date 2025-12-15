@@ -16,7 +16,55 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 - 📈 Progressive difficulty + advanced scoring (single: 100×level, Tetris: 800×level)
 - 🤖 **AI-powered demo mode** (attract mode) - watch the AI play strategically
 - ⚡ **Charged Blocks (Power-Ups)** - strategic bonuses without breaking core mechanics
+- 🌊 **Rising Lines System** - escalating pressure mode with strategic depth
 - 🎮 Full keyboard controls (←→↓↑ SPACE C G D P R M ESC)
+
+### Rising Lines System ("Pressure Mode")
+
+Transform Tetris into a survival experience with the **Rising Lines System**! Lines with random holes spawn from the bottom at timed intervals, pushing all existing blocks upward and creating escalating pressure.
+
+**Game Modes:**
+- **Classic Mode** (Default) - Rising lines disabled for traditional gameplay
+- **Pressure Mode** - Progressive difficulty: intervals decrease from 30s (Level 1) to 10s (Level 10+)
+- **Survival Mode** - Aggressive fixed intervals (12 seconds) for maximum challenge
+- **Manual Mode** - You control when lines rise (press 'R' key, 5-second cooldown)
+
+**Visual Feedback:**
+- Progress bar showing time until next rise (or cooldown status in manual mode)
+- 5-second warning indicator with pulsing red bar at grid bottom
+- Smooth 300ms upward slide animation when lines rise
+- Color-coded timer (cyan = safe, red = warning)
+
+**Difficulty Progression (Pressure Mode):**
+- **Level 1-3:** Rise every 40 seconds, 2-3 holes per line
+- **Level 4-6:** Rise every 30 seconds, 1-3 holes per line
+- **Level 7-9:** Rise every 20 seconds, 1-2 holes per line
+- **Level 10+:** Rise every 15 seconds, 1-2 holes per line (minimum)
+
+**Strategic Elements:**
+- Height management becomes critical - keep the board low!
+- Rising line holes create clearable opportunities
+- Combos become more valuable (clear faster than lines rise)
+- Power-ups shift upward with blocks (lost if pushed off top)
+- Game over if blocks are pushed above grid boundary
+
+**How to Enable:**
+```python
+from src.config import GameConfig
+from src.tetris import TetrisGame
+
+class PressureConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "pressure"  # or "survival" or "manual"
+
+game = TetrisGame(PressureConfig)
+game.run()
+```
+
+**Controls:**
+- In **Manual Mode**: Press 'R' to trigger a rising line (watch the cooldown bar!)
+- Rising lines pause during: line clearing animations and pause state
+- All other controls remain the same
 
 ### Charged Blocks (Power-Up System)
 
@@ -170,6 +218,96 @@ class CustomDemoConfig(GameConfig):
 game = TetrisGame(CustomDemoConfig)
 game.run()
 ```
+
+### Rising Lines Configuration
+
+Customize rising lines behavior for different difficulty levels and game modes:
+
+#### Pressure Mode (Progressive Difficulty)
+```python
+class PressureConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "pressure"
+    
+    # Timing configuration
+    RISING_INITIAL_INTERVAL = 30000  # 30 seconds at level 1
+    RISING_INTERVAL_DECREASE = 2000  # Decrease 2s per level
+    RISING_MIN_INTERVAL = 10000  # Minimum 10 seconds
+    
+    # Line properties
+    RISING_HOLES_MIN = 1  # Minimum holes per line
+    RISING_HOLES_MAX = 3  # Maximum holes per line
+    RISING_LINE_COLOR = (80, 80, 80)  # Gray color
+    
+    # Visual feedback
+    RISING_WARNING_TIME = 5000  # 5-second warning
+    RISING_ANIMATION_DURATION = 300  # 300ms rise animation
+
+game = TetrisGame(PressureConfig)
+game.run()
+```
+
+#### Survival Mode (Fixed Aggressive Intervals)
+```python
+class SurvivalConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "survival"
+    
+    # Fixed aggressive intervals
+    RISING_SURVIVAL_INTERVAL = 12000  # 12 seconds
+    RISING_SURVIVAL_MIN_INTERVAL = 8000  # 8 seconds minimum
+    
+    # Challenging line properties
+    RISING_HOLES_MIN = 1
+    RISING_HOLES_MAX = 2  # Fewer holes = harder
+
+game = TetrisGame(SurvivalConfig)
+game.run()
+```
+
+#### Manual Mode (Player-Controlled)
+```python
+class ManualRisingConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "manual"
+    
+    # Cooldown between manual triggers
+    RISING_MANUAL_COOLDOWN = 5000  # 5 seconds
+    
+    # Line properties (same as other modes)
+    RISING_HOLES_MIN = 1
+    RISING_HOLES_MAX = 3
+
+game = TetrisGame(ManualRisingConfig)
+game.run()
+# Press 'R' during gameplay to trigger rising lines
+```
+
+#### Easy/Hard Variants
+```python
+# Easy Rising Mode
+class EasyRisingConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "pressure"
+    RISING_INITIAL_INTERVAL = 45000  # 45 seconds
+    RISING_HOLES_MIN = 2
+    RISING_HOLES_MAX = 4  # More holes = easier
+
+# Hard Rising Mode
+class HardRisingConfig(GameConfig):
+    RISING_LINES_ENABLED = True
+    RISING_MODE = "pressure"
+    RISING_INITIAL_INTERVAL = 20000  # 20 seconds
+    RISING_HOLES_MIN = 1
+    RISING_HOLES_MAX = 2  # Fewer holes = harder
+```
+
+**Balancing Tips:**
+- Increase `RISING_INITIAL_INTERVAL` for easier gameplay
+- Decrease `RISING_MIN_INTERVAL` for more challenge at high levels
+- More holes (`RISING_HOLES_MAX`) makes lines easier to clear
+- Shorter `RISING_WARNING_TIME` increases surprise factor
+- Combine with power-ups for strategic depth
 
 ## 📦 Distribution
 
