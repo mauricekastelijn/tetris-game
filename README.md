@@ -142,7 +142,7 @@ class CustomPowerUpConfig(GameConfig):
     POWER_UP_SPAWN_CHANCE = 0.02   # 2% spawn rate (default: 1.5%)
     POWER_UP_GLOW_ANIMATION_SPEED = 8  # Faster rainbow animation
     PRECISION_LOCK_DELAY = 3000  # 3 seconds hover time (default: 2s)
-    
+
     # Customize individual power-up durations/uses
     POWER_UP_TYPES = {
         'time_dilator': {'color': (0, 150, 255), 'duration': 15000},  # 15 seconds
@@ -221,7 +221,9 @@ git clone https://github.com/mauricekastelijn/tetris-game
 cd tetris-game
 pip install -r requirements.txt
 python -m src.tetris
-```### Pre-built Executables
+```
+
+### Pre-built Executables
 
 Download pre-built executables from:
 
