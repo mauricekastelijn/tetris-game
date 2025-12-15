@@ -92,13 +92,13 @@ jobs:
 
     steps:
       - name: Download Linux executable
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: tetris-linux
           path: ./artifacts/linux
 
       - name: Download Windows executable
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: tetris-windows
           path: ./artifacts/windows
