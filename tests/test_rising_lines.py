@@ -58,9 +58,9 @@ class TestRisingLinesConfiguration:
     """Test rising lines configuration options."""
 
     def test_configuration_defaults(self) -> None:
-        """Test that default configuration has rising lines disabled."""
+        """Test that default configuration has rising lines enabled by default."""
         config = GameConfig
-        assert config.RISING_LINES_ENABLED is False
+        assert config.RISING_LINES_ENABLED is True
         assert config.RISING_MODE == "pressure"
 
     def test_configuration_pressure_mode(self) -> None:

@@ -117,10 +117,38 @@ class GameConfig:
     # Game settings (mutable configuration options)
     # Difficulty levels affect initial fall speed and speed progression
     DIFFICULTY_SETTINGS = {
-        "easy": {"initial_speed": 1500, "speed_decrease": 80, "min_speed": 200},
-        "medium": {"initial_speed": 1000, "speed_decrease": 100, "min_speed": 100},
-        "hard": {"initial_speed": 700, "speed_decrease": 120, "min_speed": 50},
-        "expert": {"initial_speed": 400, "speed_decrease": 150, "min_speed": 30},
+        "easy": {
+            "initial_speed": 1500,
+            "speed_decrease": 80,
+            "min_speed": 200,
+            "rising_initial_interval": 40000,  # 40 seconds
+            "rising_interval_decrease": 1500,  # Decrease 1.5s per level
+            "rising_min_interval": 15000,  # Minimum 15 seconds
+        },
+        "medium": {
+            "initial_speed": 1000,
+            "speed_decrease": 100,
+            "min_speed": 100,
+            "rising_initial_interval": 30000,  # 30 seconds
+            "rising_interval_decrease": 2000,  # Decrease 2s per level
+            "rising_min_interval": 10000,  # Minimum 10 seconds
+        },
+        "hard": {
+            "initial_speed": 700,
+            "speed_decrease": 120,
+            "min_speed": 50,
+            "rising_initial_interval": 25000,  # 25 seconds
+            "rising_interval_decrease": 2500,  # Decrease 2.5s per level
+            "rising_min_interval": 8000,  # Minimum 8 seconds
+        },
+        "expert": {
+            "initial_speed": 400,
+            "speed_decrease": 150,
+            "min_speed": 30,
+            "rising_initial_interval": 20000,  # 20 seconds
+            "rising_interval_decrease": 3000,  # Decrease 3s per level
+            "rising_min_interval": 5000,  # Minimum 5 seconds
+        },
     }
 
     # Feature toggles
@@ -142,7 +170,7 @@ class GameConfig:
     PRECISION_LOCK_DELAY = 2000  # milliseconds of hover time before auto-lock
 
     # Rising Lines System Configuration
-    RISING_LINES_ENABLED = False  # Opt-in feature
+    RISING_LINES_ENABLED = True  # Enabled by default
     RISING_MODE = "pressure"  # Options: "off", "pressure", "survival", "manual"
 
     # Timing (milliseconds)

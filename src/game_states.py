@@ -374,6 +374,7 @@ class DemoState(GameState):
         super().__init__()
         self.ai: Optional["DemoAI"] = None
         self.move_timer = 0
+        self.previous_rising_state = None  # Store previous state to restore later
 
     def handle_input(self, event: pygame.event.Event, game: "TetrisGame") -> None:
         """Handle input during demo mode.
@@ -389,6 +390,10 @@ class DemoState(GameState):
             ESC: Exit demo and start new game
             Any other key: Exit demo and start new game
         """
+        # Restore previous rising lines state if it was stored
+        if self.previous_rising_state is not None:
+            game.config.RISING_LINES_ENABLED = self.previous_rising_state
+
         # Any key exits demo mode
         game.reset_game()
         game.state = PlayingState()
@@ -403,10 +408,14 @@ class DemoState(GameState):
             delta_time: Time elapsed since last update in milliseconds
             game: The TetrisGame instance to update
         """
-        # Initialize AI if needed
+        # Initialize AI if needed and ensure rising lines are enabled
         if self.ai is None:
             # Import here to avoid circular dependencies
             from src.demo_ai import DemoAI  # pylint: disable=import-outside-toplevel
+
+            # Store previous rising lines state and enable it for demo
+            self.previous_rising_state = game.config.RISING_LINES_ENABLED
+            game.config.RISING_LINES_ENABLED = True
 
             self.ai = DemoAI(game)
 
@@ -479,16 +488,17 @@ class ConfigMenuState(GameState):
     """Configuration menu state.
 
     In this state, players can modify game settings including:
-    - Difficulty level (affects fall speed)
+    - Difficulty level (affects fall speed and rising lines frequency)
     - Charged Blocks feature toggle
     - Hold Blocks feature toggle
+    - Rising Lines feature toggle
     """
 
     def __init__(self) -> None:
         """Initialize config menu state."""
         super().__init__()
         self.selected_option = 0
-        self.options = ["difficulty", "charged_blocks", "hold_blocks", "back"]
+        self.options = ["difficulty", "charged_blocks", "hold_blocks", "rising_lines", "back"]
         self.difficulty_levels = ["easy", "medium", "hard", "expert"]
 
         # Get current difficulty based on fall speed
@@ -544,6 +554,8 @@ class ConfigMenuState(GameState):
             game.config.CHARGED_BLOCKS_ENABLED = not game.config.CHARGED_BLOCKS_ENABLED
         elif option == "hold_blocks":
             game.config.HOLD_ENABLED = not game.config.HOLD_ENABLED
+        elif option == "rising_lines":
+            game.config.RISING_LINES_ENABLED = not game.config.RISING_LINES_ENABLED
 
     def _apply_settings(self, game: "TetrisGame") -> None:
         """Apply the current settings to the game config.
@@ -557,11 +569,19 @@ class ConfigMenuState(GameState):
         game.config.LEVEL_SPEED_DECREASE = settings["speed_decrease"]
         game.config.MIN_FALL_SPEED = settings["min_speed"]
 
+        # Apply rising lines difficulty settings
+        game.config.RISING_INITIAL_INTERVAL = settings["rising_initial_interval"]
+        game.config.RISING_INTERVAL_DECREASE = settings["rising_interval_decrease"]
+        game.config.RISING_MIN_INTERVAL = settings["rising_min_interval"]
+
         # Recalculate fall speed for current level
         new_speed = (
             game.config.INITIAL_FALL_SPEED - (game.level - 1) * game.config.LEVEL_SPEED_DECREASE
         )
         game.fall_speed = max(new_speed, game.config.MIN_FALL_SPEED)
+
+        # Recalculate rising interval for current level
+        game.rising_interval = game.calculate_rising_interval()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """No updates needed in config menu.
@@ -634,12 +654,25 @@ class ConfigMenuState(GameState):
             (game.config.SCREEN_WIDTH // 2 - hold_text.get_width() // 2, y_start + y_spacing * 2),
         )
 
+        # Rising Lines option
+        rising_color = game.config.CYAN if self.selected_option == 3 else game.config.WHITE
+        rising_status = "ON" if game.config.RISING_LINES_ENABLED else "OFF"
+        rising_text = game.small_font.render(
+            f"Rising Lines: < {rising_status} >",
+            True,
+            rising_color,
+        )
+        game.screen.blit(
+            rising_text,
+            (game.config.SCREEN_WIDTH // 2 - rising_text.get_width() // 2, y_start + y_spacing * 3),
+        )
+
         # Back option
-        back_color = game.config.CYAN if self.selected_option == 3 else game.config.WHITE
+        back_color = game.config.CYAN if self.selected_option == 4 else game.config.WHITE
         back_text = game.small_font.render("< APPLY & BACK >", True, back_color)
         game.screen.blit(
             back_text,
-            (game.config.SCREEN_WIDTH // 2 - back_text.get_width() // 2, y_start + y_spacing * 3.5),
+            (game.config.SCREEN_WIDTH // 2 - back_text.get_width() // 2, y_start + y_spacing * 4.5),
         )
 
         # Instructions
@@ -650,7 +683,7 @@ class ConfigMenuState(GameState):
             "Press ESC to cancel",
         ]
 
-        y_instructions = y_start + y_spacing * 5
+        y_instructions = y_start + y_spacing * 6
         for i, instruction in enumerate(instructions):
             instruction_text = game.small_font.render(instruction, True, game.config.GRAY)
             game.screen.blit(
