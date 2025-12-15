@@ -140,3 +140,26 @@ class GameConfig:
 
     # Precision Lock configuration
     PRECISION_LOCK_DELAY = 2000  # milliseconds of hover time before auto-lock
+
+    # Rising Lines System Configuration
+    RISING_LINES_ENABLED = False  # Opt-in feature
+    RISING_MODE = "pressure"  # Options: "off", "pressure", "survival", "manual"
+
+    # Timing (milliseconds)
+    RISING_INITIAL_INTERVAL = 30000  # 30 seconds at level 1
+    RISING_INTERVAL_DECREASE = 2000  # Decrease 2s per level
+    RISING_MIN_INTERVAL = 10000  # Minimum 10 seconds (level 10+)
+    RISING_WARNING_TIME = 5000  # 5-second warning
+    RISING_ANIMATION_DURATION = 300  # Rise animation time
+
+    # Rising Line Properties
+    RISING_HOLES_MIN = 1  # Minimum holes per line
+    RISING_HOLES_MAX = 3  # Maximum holes per line
+    RISING_LINE_COLOR = (80, 80, 80)  # Gray color for rising blocks
+
+    # Manual Rising (when RISING_MODE = "manual")
+    RISING_MANUAL_COOLDOWN = 5000  # 5 seconds between manual rises
+
+    # Survival Mode (when RISING_MODE = "survival")
+    RISING_SURVIVAL_INTERVAL = 12000  # 12 seconds
+    RISING_SURVIVAL_MIN_INTERVAL = 8000  # 8 seconds minimum

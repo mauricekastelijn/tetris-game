@@ -75,6 +75,7 @@ class PlayingState(GameState):
             D: Enter demo mode
             M: Open configuration menu
             B: Activate Line Bomb (if available)
+            R: Manual rising line trigger (if manual mode enabled)
         """
         if event.key == pygame.K_LEFT:
             game.move_piece(-1, 0)
@@ -105,6 +106,9 @@ class PlayingState(GameState):
             if game.powerup_manager.is_active("line_bomb"):
                 if game.powerup_manager.use_powerup("line_bomb"):
                     game._clear_bottom_line()
+        elif event.key == pygame.K_r:
+            # Manual rising line trigger
+            game.manual_trigger_rise()
 
     def update(self, delta_time: int, game: "TetrisGame") -> None:
         """Update active gameplay.
