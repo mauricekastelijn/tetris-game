@@ -23,6 +23,12 @@ Modern, feature-rich Tetris with smooth animations, ghost pieces, hold functiona
 
 Transform Tetris into a survival experience with the **Rising Lines System**! Lines with random holes spawn from the bottom at timed intervals, pushing all existing blocks upward and creating escalating pressure.
 
+**🚀 Quick Demo:**
+```bash
+# See rising lines in action immediately!
+python demo_rising_lines.py
+```
+
 **Game Modes:**
 - **Classic Mode** (Default) - Rising lines disabled for traditional gameplay
 - **Pressure Mode** - Progressive difficulty: intervals decrease from 30s (Level 1) to 10s (Level 10+)
@@ -30,9 +36,10 @@ Transform Tetris into a survival experience with the **Rising Lines System**! Li
 - **Manual Mode** - You control when lines rise (press 'R' key, 5-second cooldown)
 
 **Visual Feedback:**
-- Progress bar showing time until next rise (or cooldown status in manual mode)
-- 5-second warning indicator with pulsing red bar at grid bottom
-- Smooth 300ms upward slide animation when lines rise
+- **Gray rising line blocks** at bottom of grid (distinct from colored tetrominos)
+- **Progress bar** at screen bottom showing time until next rise
+- **5-second warning** indicator with pulsing red bar at grid bottom
+- **Smooth animation** when lines rise (300ms upward slide)
 - Color-coded timer (cyan = safe, red = warning)
 
 **Difficulty Progression (Pressure Mode):**

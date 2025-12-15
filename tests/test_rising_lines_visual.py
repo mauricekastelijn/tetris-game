@@ -32,10 +32,11 @@ def test_rising_lines_visual():
     pygame.init()
     game = TetrisGame(VisualTestConfig)
 
-    print(f"\n✓ Game initialized with rising lines enabled")
+    print("\n✓ Game initialized with rising lines enabled")
     print(f"  - Mode: {game.config.RISING_MODE}")
     print(f"  - Interval: {game.rising_interval / 1000}s")
-    print(f"  - Holes per line: {game.config.RISING_HOLES_MIN}-{game.config.RISING_HOLES_MAX}")
+    holes_range = f"{game.config.RISING_HOLES_MIN}-{game.config.RISING_HOLES_MAX}"
+    print(f"  - Holes per line: {holes_range}")
 
     # Test 1: Verify initial state
     print("\n[TEST 1] Initial State")
@@ -51,10 +52,11 @@ def test_rising_lines_visual():
     holes = sum(1 for cell in bottom_row if cell is None)
     filled = sum(1 for cell in bottom_row if cell is not None)
 
-    print(f"  - Bottom row after rise:")
+    print("  - Bottom row after rise:")
     print(f"    • Holes: {holes}")
     print(f"    • Filled blocks: {filled}")
-    print(f"    • Rising color blocks: {sum(1 for cell in bottom_row if cell == game.config.RISING_LINE_COLOR)}")
+    rising_blocks = sum(1 for cell in bottom_row if cell == game.config.RISING_LINE_COLOR)
+    print(f"    • Rising color blocks: {rising_blocks}")
 
     # Verify rising line has correct properties
     assert holes >= game.config.RISING_HOLES_MIN
@@ -65,7 +67,8 @@ def test_rising_lines_visual():
     # Verify color
     for cell in bottom_row:
         if cell is not None:
-            assert cell == game.config.RISING_LINE_COLOR, f"Expected {game.config.RISING_LINE_COLOR}, got {cell}"
+            expected = game.config.RISING_LINE_COLOR
+            assert cell == expected, f"Expected {expected}, got {cell}"
     print("  ✓ Rising line blocks have correct color")
 
     # Test 3: Test warning activation
@@ -81,7 +84,10 @@ def test_rising_lines_visual():
     print(f"  - Time until rise: {time_until}ms")
     print(f"  - Warning threshold: {game.config.RISING_WARNING_TIME}ms")
     print(f"  - Warning active: {game.rising_warning_active}")
-    assert game.rising_warning_active, f"Warning should be active (time_until={time_until}, threshold={game.config.RISING_WARNING_TIME})"
+    threshold = game.config.RISING_WARNING_TIME
+    assert (
+        game.rising_warning_active
+    ), f"Warning should be active (time_until={time_until}, threshold={threshold})"
     print("  ✓ Warning activates before rise")
 
     # Test 4: Test multiple rises
